@@ -8,16 +8,14 @@ install.packages("xtable")
 devtools::install_github("hadley/dplyr")
 devtools::install_github("rstudio/sparklyr")
 install.packages("ggplot2")
-install.packages("RgoogleMaps")
-install.packages("OpenStreetMap")
-install.packages("ggmap")
+install.packages("rworldmap")
+install.packages("rworldxtra")
 
 library(sparklyr)
 library(dplyr)
 library(ggplot2)
-library(RgoogleMaps)
-library(OpenStreetMap)
-library(ggmap)
+library(rworldmap)
+library(rworldxtra)
 
 # Spark Konfiguration mehr Arbeitsspeicher zur Verfuegung stellen
 config <- spark_config()
@@ -50,7 +48,7 @@ data <- spark_read_csv(sc, "test",
 sqlfunction(sc,"SELECT SUBSTR(V1,1,2) AS country,SUBSTR(V1,3,9) AS station,V2,V3,V4,V5,V6,V7,V8 FROM test") %>% invoke("createOrReplaceTempView", "test")
 data <- tbl(sc, "test")
 
-# Plotbeispiel f?r 1800er CSV
+# Plotbeispiel für 1800er CSV
 dataf <- data %>% filter(V3 == "TMAX") %>% select(station, V2, V4) %>% filter(station == "E00100082")
 d <- collect(dataf)
 d
@@ -133,10 +131,6 @@ data_stations <- spark_read_csv(sc, "stations",
 data_stations %>% arrange(V2) #filter(V2 >= 85.0)
 
 ###### RWorldMap #####
-install.packages("rworldmap")
-install.packages("rworldxtra")
-library(rworldmap)
-library(rworldxtra)
 newmap <- getMap(resolution = "high")
 #par=(mar=rep(0,4))
 plot(newmap)
@@ -144,66 +138,7 @@ df_coordinates <- data_stations %>% select(V2,V3)
 coordinates <- collect(df_coordinates)
 points(coordinates$V3, coordinates$V2, col="red", cex=0.8) # pch=21 für ausgefüllte Punkte
 
-###### ggmap #######
-library(ggmap)
-
-long = c(0, 45, 90, -90)
-lat = c(0, 45, 90, -90)
-who = c("Colmeal", "Portela", "Cabeça Ruiva", "Ilha do Lombo")
-data = data.frame (long, lat, who)
-
-map <- ggmap( get_map(location=c(0,0),zoom=1, maptype='satellite', scale = 2), size = c(600, 600), extent = 'normal')
-map <- ggmap( get_googlemap(center=c(0,0), zoom=1, maptype='terrain', scale = 2), size = c(600, 600), extent = 'normal', darken = 0)
-map <- ggmap( get_stamenmap(get_stamenmap(bbox = c(left = -95.80204, bottom = 29.38048, right = -94.92313, top = 30.14344), zoom = 10, maptype = "terrain")))
-
-map + geom_point (
-  data = data,
-  aes (
-    x = long, 
-    y = lat, 
-    fill = factor (who)
-  ), 
-  pch = 21, 
-  colour = "white", 
-  size = 6
-)
-
-###### RgoogleMaps #######
-j <- c(90,-180)
-m <- c(-90,180)
-#If GetMap returns "HTTP status was '403 Forbidden'" in RStudio, go to "Tools"->"Global Options"->"Packages" and change the CRAN mirror to your country.
-terrmap <- GetMap(center=c(0,0), zoom=1, maptype="terrain", SCALE=2, destfile="terrain.png")
-terrmap <- GetMap.bbox(c(-90,90), c(-90, 90), SCALE=2, maptype="terrain", destfile="terrain.png")
-PlotOnStaticMap(terrmap)
-lat=seq(-90,90, 10)
-lon=rep(0, length(lat))
-PlotOnStaticMap(terrmap, lat, lon, destfile="terrain.png")
-
-###### OpenStreetMap ########
-j <- c(90,-180)
-m <- c(-90,180)
-map <- openmap(j,m,4,type="bing")
-plot(map)#,removeMargin=FALSE)
-getMapInfo()
-launchMapHelper()
-
-## Not run:
-install.packages("maps")
-library(maps)
-#plot bing map in native mercator coords
-map <- openmap(c(70,-179),
-               c(-70,179),zoom=1,type='bing')
-plot(map)
-#using longlat projection lets us combine with the maps library
-map_longlat <- openproj(map)
-plot(map_longlat)
-map("world",col="red",add=TRUE)
-#robinson projection. good for whole globe viewing.
-map_robinson <- openproj(map_longlat, projection=
-                           "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
-plot(map_robinson)
-
-# Weltkarte mit Anz. Stationen pro Land (als verschieden gro?e Punkte)
+# Weltkarte mit Anz. Stationen pro Land (als verschieden große Punkte)
 # Für Weltkarte mit Länderdaten: https://journal.r-project.org/archive/2011-1/RJournal_2011-1_South.pdf
 #   - Weltkarte mit Punkten pro Land mapBubbles()
 
@@ -211,17 +146,17 @@ plot(map_robinson)
 ########################################
 # Fragen:
 
-# Weltkarte mit Score pro Land, um zu sehen, welche L?nder den Zeitraum am besten abdecken
-# Tages_Score = Anz. t?gl. Messungen / Anz. m?glicher t?gl. Messungen (Anz. Stationen)
+# Weltkarte mit Score pro Land, um zu sehen, welche Länder den Zeitraum am besten abdecken
+# Tages_Score = Anz. tägl. Messungen / Anz. möglicher tägl. Messungen (Anz. Stationen)
 # Jahres_Score = Summe aller Tages_scores / 365 bzw. 366
 # Score = Summe aller Jahres_Scores / Anz. Jahre
 
 
 
-# Lineare Regression ?ber die z. B. TAVG-Werte in GM aller Jahre (Geradenanstieg entspricht j?hrlichem Temperaturanstieg) 
+# Lineare Regression über die z. B. TAVG-Werte in GM aller Jahre (Geradenanstieg entspricht jährlichem Temperaturanstieg) 
 # besser
-# Temperatur Plot ?ber alle Jahr
-# F?r jedes Jahr den Durchschnittswert bilden von TMIN, TMAX, TAVG und diese drei "Kurven" (Punkte) ?ber alle Jahre plotten
+# Temperatur Plot über alle Jahr
+# Für jedes Jahr den Durchschnittswert bilden von TMIN, TMAX, TAVG und diese drei "Kurven" (Punkte) über alle Jahre plotten
 
 
 
@@ -232,5 +167,5 @@ plot(map_robinson)
 # Weltkarte mit Anstieg der Unwetter weltweit
 
 
-# Weltkarte mit Anstieg des Niederschlags (PRCP) weltweit (Erderw?rmung ==> Mehr Kondensation)
+# Weltkarte mit Anstieg des Niederschlags (PRCP) weltweit (Erderwärmung ==> Mehr Kondensation)
 
