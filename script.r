@@ -1,9 +1,24 @@
 # Entsprechenden Path auskommentieren
 #path = "E:\\Big Data Prak\\ftp.ncdc.noaa.gov\\pub\\data\\ghcn\\daily\\by_year\\1800.csv"
+#path_stations = "E:\\Big Data Prak\\ftp.ncdc.noaa.gov\\pub\\data\\ghcn\\daily\\ghcnd-stations___tmp.csv"
 #path = "F:/Projekte/big_data_praktikum/by_year/2016.csv"
-path = "D:/Entwicklung/big-data-praktikum/data/1800.csv"
+#path = "D:/Entwicklung/big-data-praktikum/data/1800.csv"
+
+install.packages("xtable")
+devtools::install_github("hadley/dplyr")
+devtools::install_github("rstudio/sparklyr")
+install.packages("ggplot2")
+install.packages("RgoogleMaps")
+install.packages("OpenStreetMap")
+install.packages("ggmap")
+
 library(sparklyr)
 library(dplyr)
+library(ggplot2)
+library(RgoogleMaps)
+library(OpenStreetMap)
+library(ggmap)
+
 # Spark Konfiguration mehr Arbeitsspeicher zur Verfuegung stellen
 config <- spark_config()
 config$`sparklyr.shell.driver-memory` <- "4G"
@@ -92,7 +107,7 @@ data %>% filter(country == "GM") %>% group_by(V3) %>% summarise(count = n())
 # Pit
 
 # 2016er CSV Operationen 
-# DataFrame um L?ndercode erweitern, weil substr() zu teuer ist
+# DataFrame um Ländercode erweitern, weil substr() zu teuer ist
 # ggf. nur bestimmte Spalten laden
 
 
@@ -104,8 +119,93 @@ data %>% filter(country == "GM") %>% group_by(V3) %>% summarise(count = n())
 # Phil
 
 # Weltkarte mit Stationen
-# Weltkarte mit Anz. Stationen pro Land (als verschieden gro?e Punkte)
 
+data_stations <- spark_read_csv(sc, "stations", 
+                       path_stations, 
+                       header=FALSE, 
+                       infer_schema = FALSE, 
+                       columns = list(
+                         V1 = "character",
+                         V2 = "double",
+                         V3 = "double"
+                       )
+)
+data_stations %>% arrange(V2) #filter(V2 >= 85.0)
+
+###### RWorldMap #####
+install.packages("rworldmap")
+install.packages("rworldxtra")
+library(rworldmap)
+library(rworldxtra)
+newmap <- getMap(resolution = "high")
+#par=(mar=rep(0,4))
+plot(newmap)
+df_coordinates <- data_stations %>% select(V2,V3)
+coordinates <- collect(df_coordinates)
+points(coordinates$V3, coordinates$V2, col="red", cex=0.8) # pch=21 für ausgefüllte Punkte
+
+###### ggmap #######
+library(ggmap)
+
+long = c(0, 45, 90, -90)
+lat = c(0, 45, 90, -90)
+who = c("Colmeal", "Portela", "Cabeça Ruiva", "Ilha do Lombo")
+data = data.frame (long, lat, who)
+
+map <- ggmap( get_map(location=c(0,0),zoom=1, maptype='satellite', scale = 2), size = c(600, 600), extent = 'normal')
+map <- ggmap( get_googlemap(center=c(0,0), zoom=1, maptype='terrain', scale = 2), size = c(600, 600), extent = 'normal', darken = 0)
+map <- ggmap( get_stamenmap(get_stamenmap(bbox = c(left = -95.80204, bottom = 29.38048, right = -94.92313, top = 30.14344), zoom = 10, maptype = "terrain")))
+
+map + geom_point (
+  data = data,
+  aes (
+    x = long, 
+    y = lat, 
+    fill = factor (who)
+  ), 
+  pch = 21, 
+  colour = "white", 
+  size = 6
+)
+
+###### RgoogleMaps #######
+j <- c(90,-180)
+m <- c(-90,180)
+#If GetMap returns "HTTP status was '403 Forbidden'" in RStudio, go to "Tools"->"Global Options"->"Packages" and change the CRAN mirror to your country.
+terrmap <- GetMap(center=c(0,0), zoom=1, maptype="terrain", SCALE=2, destfile="terrain.png")
+terrmap <- GetMap.bbox(c(-90,90), c(-90, 90), SCALE=2, maptype="terrain", destfile="terrain.png")
+PlotOnStaticMap(terrmap)
+lat=seq(-90,90, 10)
+lon=rep(0, length(lat))
+PlotOnStaticMap(terrmap, lat, lon, destfile="terrain.png")
+
+###### OpenStreetMap ########
+j <- c(90,-180)
+m <- c(-90,180)
+map <- openmap(j,m,4,type="bing")
+plot(map)#,removeMargin=FALSE)
+getMapInfo()
+launchMapHelper()
+
+## Not run:
+install.packages("maps")
+library(maps)
+#plot bing map in native mercator coords
+map <- openmap(c(70,-179),
+               c(-70,179),zoom=1,type='bing')
+plot(map)
+#using longlat projection lets us combine with the maps library
+map_longlat <- openproj(map)
+plot(map_longlat)
+map("world",col="red",add=TRUE)
+#robinson projection. good for whole globe viewing.
+map_robinson <- openproj(map_longlat, projection=
+                           "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
+plot(map_robinson)
+
+# Weltkarte mit Anz. Stationen pro Land (als verschieden gro?e Punkte)
+# Für Weltkarte mit Länderdaten: https://journal.r-project.org/archive/2011-1/RJournal_2011-1_South.pdf
+#   - Weltkarte mit Punkten pro Land mapBubbles()
 
 
 ########################################
