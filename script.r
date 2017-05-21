@@ -1,6 +1,6 @@
 # Entsprechenden Path auskommentieren
 #path_year = "E:\\Big Data Prak\\ftp.ncdc.noaa.gov\\pub\\data\\ghcn\\daily\\by_year\\"
-#path_stations = "E:\\Big Data Prak\\ftp.ncdc.noaa.gov\\pub\\data\\ghcn\\daily\\ghcnd-stations___tmp.csv"
+#path_stations = "E:\\Big Data Prak\\ftp.ncdc.noaa.gov\\pub\\data\\ghcn\\daily\\ghcnd-stations.txt"
 #path_year = "F:/Projekte/big_data_praktikum/by_year/"
 #path_year = "D:/Entwicklung/big-data-praktikum/data/"
 
@@ -116,17 +116,12 @@ data %>% filter(country == "GM") %>% group_by(V3) %>% summarise(count = n())
 # Phil
 
 # Weltkarte mit Stationen
+data_stations <- read.fwf(path_stations, 
+                        widths = c(11,9,10,7,3,31,4,4,6), 
+                        header = FALSE,
+                        comment.char='',
+                        strip.white = TRUE)
 
-data_stations <- spark_read_csv(sc, "stations", 
-                       path_stations, 
-                       header=FALSE, 
-                       infer_schema = FALSE, 
-                       columns = list(
-                         V1 = "character",
-                         V2 = "double",
-                         V3 = "double"
-                       )
-)
 data_stations %>% arrange(V2) #filter(V2 >= 85.0)
 
 ###### RWorldMap #####
