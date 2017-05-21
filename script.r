@@ -1,8 +1,8 @@
 # Entsprechenden Path auskommentieren
-#path = "E:\\Big Data Prak\\ftp.ncdc.noaa.gov\\pub\\data\\ghcn\\daily\\by_year\\1800.csv"
+#path_year = "E:\\Big Data Prak\\ftp.ncdc.noaa.gov\\pub\\data\\ghcn\\daily\\by_year\\"
 #path_stations = "E:\\Big Data Prak\\ftp.ncdc.noaa.gov\\pub\\data\\ghcn\\daily\\ghcnd-stations___tmp.csv"
-#path = "F:/Projekte/big_data_praktikum/by_year/2016.csv"
-#path = "D:/Entwicklung/big-data-praktikum/data/1800.csv"
+#path_year = "F:/Projekte/big_data_praktikum/by_year/"
+#path_year = "D:/Entwicklung/big-data-praktikum/data/"
 
 install.packages("xtable")
 devtools::install_github("hadley/dplyr")
@@ -30,7 +30,7 @@ sqlfunction <- function(sc, block) {
 }
 
 data <- spark_read_csv(sc, "test", 
-                       path, 
+                       path = paste(path_year,"1800.csv", sep = ""), 
                        header=FALSE, 
                        infer_schema = FALSE,
                        columns = list(
@@ -44,8 +44,8 @@ data <- spark_read_csv(sc, "test",
                          V8 = "character"
                          )
                        )
-# Splittet CountryCode und StationCode fuer schnelleres Filtering
-sqlfunction(sc,"SELECT SUBSTR(V1,1,2) AS country,SUBSTR(V1,3,9) AS station,V2,V3,V4,V5,V6,V7,V8 FROM test") %>% invoke("createOrReplaceTempView", "test")
+# Splittet CountryCode und StationCode fuer schnelleres Filtering, V6 (QFLAG) muss leer sein (keine Konsistenzfehler)
+sqlfunction(sc,"SELECT SUBSTR(V1,1,2) AS country,SUBSTR(V1,3,9) AS station,V2,V3,V4,V5,V6,V7,V8 FROM test WHERE (V6 IS NULL)") %>% invoke("createOrReplaceTempView", "test")
 data <- tbl(sc, "test")
 
 # Plotbeispiel für 1800er CSV
@@ -63,10 +63,10 @@ library(ggplot2)
 ggplot(d, aes(as.Date(V2, "%Y%m%d"), temp)) + geom_point() + geom_smooth()
 
 # Iteration Beispiel
-data_count = vector("double", 6)
-for(i in (1800:1805)) {
+data_count = vector("double", 21)
+for(i in (1800:1820)) {
   data <- spark_read_csv(sc, "test", 
-                         path = paste("F:/Projekte/big_data_praktikum/by_year/",i,".csv", sep = ""), 
+                         path = paste(path_year,i,".csv", sep = ""), 
                          header=FALSE, 
                          infer_schema = FALSE,
                          columns = list(
@@ -81,14 +81,13 @@ for(i in (1800:1805)) {
                          )
   )
   # Splittet CountryCode und StationCode fuer schnellere Filter
-  sqlfunction(sc,"SELECT SUBSTR(V1,1,2) AS country,SUBSTR(V1,3,9) AS station,V2,V3,V4,V5,V6,V7,V8 FROM test") %>% invoke("createOrReplaceTempView", "test")
+  sqlfunction(sc,"SELECT SUBSTR(V1,1,2) AS country,SUBSTR(V1,3,9) AS station,V2,V3,V4,V5,V6,V7,V8 FROM test WHERE (V6 IS NULL)") %>% invoke("createOrReplaceTempView", "test")
   data <- tbl(sc, "test")
   
   dataf <- data %>% filter(country == "IT") %>% filter(V3 == "TMAX") %>% select(country, V4) %>% group_by(country) %>% summarise(temp = mean(V4/10)) %>% collect
   data_count[i] = as.double(dataf[1,2])
   print(data_count[i])
-  #print(as.double(dataf[1,2]))
-}
+  }
 
 # Anzahl Messungen pro Land
 data %>% filter(country == "GM") %>% summarise(count = n())
