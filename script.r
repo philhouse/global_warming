@@ -1,6 +1,7 @@
 # Entsprechenden Path auskommentieren
 #path_year = "E:\\Big Data Prak\\ftp.ncdc.noaa.gov\\pub\\data\\ghcn\\daily\\by_year\\"
 #path_stations = "E:\\Big Data Prak\\ftp.ncdc.noaa.gov\\pub\\data\\ghcn\\daily\\ghcnd-stations.txt"
+#path_co2_global = "E:\\Big Data Prak\\cdiac.ornl.gov\\ftp\\ndp030\\CSV-FILES\\global.1751_2014.csv"
 #path_year = "F:/Projekte/big_data_praktikum/by_year/"
 #path_year = "D:/Entwicklung/big-data-praktikum/data/"
 
@@ -52,14 +53,12 @@ data <- tbl(sc, "test")
 dataf <- data %>% filter(V3 == "TMAX") %>% select(station, V2, V4) %>% filter(station == "E00100082")
 d <- collect(dataf)
 d
-library(ggplot2)
 ggplot(d, aes(as.Date(d$V2, "%Y%m%d"), d$V4)) + geom_point(aes(colour = d$station))
 
 # Plotbeispiel GM Durchschnittstemp
 dataf <- data %>% filter(country == "GM") %>% filter(V3 == "TMAX") %>% select(V2, V4) %>% group_by(V2) %>% summarise(temp = mean(V4/10))
 d <- collect(dataf)
 d %>% arrange(V2)
-library(ggplot2)
 ggplot(d, aes(as.Date(V2, "%Y%m%d"), temp)) + geom_point() + geom_smooth()
 
 # Iteration Beispiel
@@ -114,6 +113,30 @@ data %>% filter(country == "GM") %>% group_by(V3) %>% summarise(count = n())
 
 ########################################
 # Phil
+
+# Einlesen der CO2 Emissionswerte
+sdf_co2_global <- spark_read_csv(sc, "co2_global", 
+                       path_co2_global, 
+                       header=TRUE, 
+                       infer_schema = TRUE
+                       )
+# Data Cleaning
+sdf_co2_global <- sdf_co2_global %>% filter(LENGTH(Year) == 4)
+
+sdf_co2_global <- rename(sdf_co2_global, Total = Total_carbon_emissions_from_fossil_fuel_consumption_and_cement_production_million_metric_tons_of_C)
+#sdf_co2_global <- rename(sdf_co2_global, Gas_fuel = Carbon_emissions_from_gas_fuel_consumption)
+#sdf_co2_global <- rename(sdf_co2_global, Liquid_fuel = Carbon_emissions_from_liquid_fuel_consumption)
+#sdf_co2_global <- rename(sdf_co2_global, Solid_fuel = Carbon_emissions_from_solid_fuel_consumption)
+#sdf_co2_global <- rename(sdf_co2_global, Cement_production = Carbon_emissions_from_cement_production)
+#sdf_co2_global <- rename(sdf_co2_global, Gas_flaring = Carbon_emissions_from_gas_flaring)
+#sdf_co2_global <- rename(sdf_co2_global, Per_capita = Per_capita_carbon_emissions_metric_tons_of_carbon_after_1949_only)
+
+sdf_co2_global <- transform(sdf_co2_global, Total = as.numeric(Total))
+sdf_co2_global <- transform(sdf_co2_global, Year = as.Date(Year, "%Y"))
+df_co2_global <- sdf_co2_global %>% select(Year, Total) %>% collect
+ggplot(df_co2_global, Year, Total) + geom_point() + geom_smooth()
+ggplot(df_co2_global, aes(as.Date(Year, "%Y"), Total)) + geom_point() + geom_smooth()
+
 
 # Weltkarte mit Stationen
 data_stations <- read.fwf(path_stations, 
