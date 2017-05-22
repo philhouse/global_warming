@@ -138,7 +138,10 @@ points(coordinates$V3, coordinates$V2, col="red", cex=0.8) # pch=21 f체r ausgef�
 
 
 ########################################
-# Fragen:
+
+## Datenabdeckung
+
+# Stations Weltkarte
 
 # Weltkarte mit Score pro Land, um zu sehen, welche L채nder den Zeitraum am besten abdecken
 # Tages_Score = Anz. t채gl. Messungen / Anz. m철glicher t채gl. Messungen (Anz. Stationen)
@@ -146,20 +149,35 @@ points(coordinates$V3, coordinates$V2, col="red", cex=0.8) # pch=21 f체r ausgef�
 # Score = Summe aller Jahres_Scores / Anz. Jahre
 
 
+## Fragen:
+
+# Weltkarte mit Anstieg der Temperatur pro Land (oder 10째x10째 Lat/Long Fl채che)
+# + Weltkarte f체r Sommer
+# + Weltkarte f체r Winter
 
 # Lineare Regression 체ber die z. B. TAVG-Werte in GM aller Jahre (Geradenanstieg entspricht j채hrlichem Temperaturanstieg) 
 # besser
 # Temperatur Plot 체ber alle Jahr
 # F체r jedes Jahr den Durchschnittswert bilden von TMIN, TMAX, TAVG und diese drei "Kurven" (Punkte) 체ber alle Jahre plotten
 
-
-
-# Plot der Eisschichtwerte in Antarktis (Keine FRTH-Werte in 2016, nur THIC in USA (Eisdicke auf Wasser))
-# -
-
-
-# Weltkarte mit Anstieg der Unwetter weltweit
-
+# CO2 Plot 체berlegt mit globaler Temp. pro Jahr
 
 # Weltkarte mit Anstieg des Niederschlags (PRCP) weltweit (Erderw채rmung ==> Mehr Kondensation)
 
+# Weltkarte mit Anstieg der Unwetter weltweit
+# Plot mit Anstiegen der einzelnen Unwetterarten
+# WT** = Weather Type where ** has one of the following values:
+# 02 = Heavy fog or heaving freezing fog
+# 03 = Thunder
+# 04 = Ice pellets, sleet, snow pellets, or small hail 
+# 05 = Hail (may include small hail)
+# 07 = Dust, volcanic ash, blowing dust, blowing sand, or blowing obstruction
+# 10 = Tornado, waterspout, or funnel cloud 
+# 11 = High or damaging winds
+# 16 = Rain (may include freezing rain, drizzle, and freezing drizzle) 
+# 17 = Freezing rain 
+# 18 = Snow, snow pellets, snow grains, or ice crystals
+# (19 = Unknown source of precipitation )
+
+# Plot der Eisschichtwerte in Antarktis (Keine FRTH-Werte in 2016, nur THIC in USA (Eisdicke auf Wasser))
+# -
