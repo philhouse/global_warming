@@ -57,13 +57,13 @@ shinyUI(fluidPage(
                  
                  # Plot
                  conditionalPanel(condition = "input.showTempPlot == true",
-                                  conditionalPanel(condition = "input.time_span_plot == time_span_year",
+                                  conditionalPanel(condition = "input.time_span_plot == 'time_span_year'",
                                                    plotOutput("tempyPlot")
                                   ),
-                                  conditionalPanel(condition = "input.time_span_plot == time_span_summer",
+                                  conditionalPanel(condition = "input.time_span_plot == 'time_span_summer'",
                                                    plotOutput("tempsPlot")
                                   ),
-                                  conditionalPanel(condition = "input.time_span_plot == time_span_winter",
+                                  conditionalPanel(condition = "input.time_span_plot == 'time_span_winter'",
                                                    plotOutput("tempwPlot")
                                   )
                  ),
@@ -71,31 +71,31 @@ shinyUI(fluidPage(
                                   plotOutput("co2Plot")
                  ),
                  conditionalPanel(condition = "input.showPrecPlot == true",
-                                  conditionalPanel(condition = "input.time_span_plot == time_span_year",
+                                  conditionalPanel(condition = "input.time_span_plot == 'time_span_year'",
                                                    plotOutput("precyPlot")
                                   ),
-                                  conditionalPanel(condition = "input.time_span_plot == time_span_summer",
+                                  conditionalPanel(condition = "input.time_span_plot == 'time_span_summer'",
                                                    plotOutput("precsPlot")
                                   ),
-                                  conditionalPanel(condition = "input.time_span_plot == time_span_winter",
+                                  conditionalPanel(condition = "input.time_span_plot == 'time_span_winter'",
                                                    plotOutput("precwPlot")
                                   )
                  ),
                  conditionalPanel(condition = "input.showStormPlot == true",
-                                  conditionalPanel(condition = "input.time_span_plot == time_span_year",
+                                  conditionalPanel(condition = "input.time_span_plot == 'time_span_year'",
                                                    plotOutput("stormyPlot")
                                   ),
-                                  conditionalPanel(condition = "input.time_span_plot == time_span_summer",
+                                  conditionalPanel(condition = "input.time_span_plot == 'time_span_summer'",
                                                    plotOutput("stormsPlot")
                                   ),
-                                  conditionalPanel(condition = "input.time_span_plot == time_span_winter",
+                                  conditionalPanel(condition = "input.time_span_plot == 'time_span_winter'",
                                                    plotOutput("stormwPlot")
                                   )
                  ),
                  
                  # Sidepanel for settings for the values that we want to display
                  absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-                               draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
+                               draggable = TRUE, top = "auto", left = "auto", right = 20, bottom = 60,
                                width = 330, height = "auto",
                                
                                h3("Anzuzeigende Werte"),

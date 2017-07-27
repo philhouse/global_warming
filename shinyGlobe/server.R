@@ -8,6 +8,8 @@ library(ggplot2)
 source("../init.r")
 source("../emission.r")
 
+init()
+
 data <- spark_read_csv(sc,name="weather_data",path = path_weather_data)
 
 # Convert weather data to global data for plots
@@ -135,7 +137,7 @@ shinyServer(function(input, output) {
   
   # Leaflet Map generation
   output$map <- renderLeaflet({
-    leaflet(data = geojson_10x10squares) %>%
+    leaflet() %>%
       addTiles(
         urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
         attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
@@ -173,43 +175,42 @@ shinyServer(function(input, output) {
   
   # function that generates plots
   output$tempyPlot <- renderPlot({
-    # plot(x = sdf_data_global$Year, y = sdf_data_global$TMAX_year, type="p")
-    ggplot(sdf_data_global, aes(Year,TMAX_year)) + geom_smooth()
+    ggplot(sdf_data_global, aes(Year,TMAX_year)) + geom_point() + geom_smooth()
   })
   
   output$tempsPlot <- renderPlot({
-    plot(x = sdf_data_global$Year, y = sdf_data_global$TMAX_summer, type="p")
+    ggplot(sdf_data_global, aes(Year,TMAX_summer)) + geom_point() + geom_smooth()
   })
   
   output$tempwPlot <- renderPlot({
-    plot(x = sdf_data_global$Year, y = sdf_data_global$TMAX_winter, type="p")
+    ggplot(sdf_data_global, aes(Year,TMAX_winter)) + geom_point() + geom_smooth()
   })
 
   output$co2Plot <- renderPlot({
-    plot(x = sdf_data_global$Year, y = sdf_data_global$co2, type="p")
+    ggplot(sdf_data_global, aes(Year,Total_in_mega_tons)) + geom_point() + geom_smooth()
   })
 
   output$precyPlot <- renderPlot({
-    plot(x = sdf_data_global$Year, y = sdf_data_global$PRCP_year, type="p")
+    ggplot(sdf_data_global, aes(Year,PRCP_year)) + geom_point() + geom_smooth()
   })
   
   output$precsPlot <- renderPlot({
-    plot(x = sdf_data_global$Year, y = sdf_data_global$PRCP_summer, type="p")
+    ggplot(sdf_data_global, aes(Year,PRCP_summer)) + geom_point() + geom_smooth()
   })
   
   output$precwPlot <- renderPlot({
-    plot(x = sdf_data_global$Year, y = sdf_data_global$PRCP_winter, type="p")
+    ggplot(sdf_data_global, aes(Year,PRCP_winter)) + geom_point() + geom_smooth()
   })
 
   output$stormyPlot <- renderPlot({
-    plot(x = sdf_data_global$Year, y = sdf_data_global$WTXX_year, type="p")
+    ggplot(sdf_data_global, aes(Year,WTXX_year)) + geom_point() + geom_smooth()
   })
   
   output$stormsPlot <- renderPlot({
-    plot(x = sdf_data_global$Year, y = sdf_data_global$WTXX_summer, type="p")
+    ggplot(sdf_data_global, aes(Year,WTXX_summer)) + geom_point() + geom_smooth()
   })
   
   output$stormwPlot <- renderPlot({
-    plot(x = sdf_data_global$Year, y = sdf_data_global$WTXX_winter, type="p")
+    ggplot(sdf_data_global, aes(Year,WTXX_winter)) + geom_point() + geom_smooth()
   })
 })
