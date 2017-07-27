@@ -4,8 +4,8 @@ library(shiny)
 # Temperature select options 
 vars_temp <- c(
   "Ganzes Jahr" = "time_span_year",
-  "Sommer" = "time_span_summer",
-  "Winter" = "time_span_winter"
+  "Mai - Nov (Sommer)" = "time_span_summer",
+  "Nov - Mai (Winter)" = "time_span_winter"
 )
 # Define UI for application
 shinyUI(fluidPage(
@@ -55,7 +55,7 @@ shinyUI(fluidPage(
                    # Include our custom CSS
                    includeCSS("style.css")
                  ),
-                 
+                 h2(),
                  # Plot
                  conditionalPanel(condition = "input.showTempPlot == true",
                                   conditionalPanel(condition = "input.time_span_plot == 'time_span_year'",
@@ -97,7 +97,7 @@ shinyUI(fluidPage(
                  # Sidepanel for settings for the values that we want to display
                  absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
                                draggable = TRUE, top = "auto", left = "auto", right = 20, bottom = 60,
-                               width = 330, height = "auto",
+                               width = 330, height = 300,
                                
                                h3("Anzuzeigende Werte"),
                                checkboxInput("showTempPlot",label = "Temperatur", value = TRUE),

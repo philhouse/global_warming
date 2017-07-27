@@ -1,10 +1,3 @@
-library(leaflet)
-library(shiny)
-library(jsonlite)
-library(dplyr)
-library(geojsonio)
-library(ggplot2)
-
 source("../init.r")
 source("../emission.r")
 
@@ -20,9 +13,6 @@ sdf_weather_data_global <- data %>% group_by(Year) %>%
 sdf_co2_global <- read_co2_global(path_co2_global)
 sdf_data_global <- left_join(sdf_weather_data_global, sdf_co2_global, by = "Year") %>% collect()
 
-#Load GeoJSOn Data, Convert to sp to use polygon functions
-geojson_polygon_data <- geojson_read("geojson_polygons_data.geojson", what="sp")
-
 shinyServer(function(input, output) {
   
   observe({
@@ -33,7 +23,8 @@ shinyServer(function(input, output) {
     
     # Convert into GeoJSON format for Circles on Map
     geojson_circle_data <- geojson_sp(geojson_json(filtered_data, lat='Lat', lon = 'Long'))
-    geojson_polygon_filtered_data <- subset(geojson_polygon_data, Year == yearSlider)
+    #Load yearly GeoJSOn Data, Convert to sp to use polygon functions
+    geojson_polygon_filtered_data <- geojson_read(paste(path_processed,"polygons_weather_data\\geojson_polygons_data_",yearSlider,".geojson",sep=""), what="sp")
     
     # Observer for temp/prec/storm timespan to determine which timespan of the year to look at
     observe({
@@ -54,21 +45,26 @@ shinyServer(function(input, output) {
       
       temp_data = temp_data / 10
       prec_data = prec_data / 10
-      
+
       # Convert into numeric for correct Calculation of Color Palette and removal of NAs
-      temp_data_pal <- as.numeric(gsub("[^.0-9-]+","",temp_data))[!is.na(temp_data)]
-      prec_data_pal <- as.numeric(gsub("[^.0-9-]+","",prec_data))[!is.na(prec_data)]
-      storm_data_pal <- as.numeric(gsub("[^.0-9-]+","",storm_data))[!is.na(storm_data)]
+      # temp_data_pal <- as.numeric(gsub("[^.0-9-]+","",temp_data))[!is.na(temp_data)]
+      # prec_data_pal <- as.numeric(gsub("[^.0-9-]+","",prec_data))[!is.na(prec_data)]
+      storm_data_pal <- as.numeric(gsub("[^.0-9-]+","",storm_data))[!is.na(storm_data)] / 0.01
+      
+      # Color Palette Domains
+      tempPalDomain <- c(-12,12)
+      precPalDomain <- c(-20,20)
+      stormPalDomain <- c(-20,20)
       
       # Create Color Palette for temp, prec, storm
-      tempPal = colorNumeric(c('#67a9cf','#f7f7f7','#ef8a62'), domain = temp_data_pal)
-      precPal <- colorNumeric(palette = "Blues", domain = prec_data_pal)
-      stormPal <- colorNumeric(palette = "Greens",domain = storm_data_pal)
+      tempPal <- colorNumeric(c('#67001f','#b2182b','#d6604d','#f4a582','#fddbc7','#f7f7f7','#d1e5f0','#92c5de','#4393c3','#2166ac','#053061'), domain = tempPalDomain, reverse = TRUE)
+      precPal <- colorNumeric(c('#a50026','#d73027','#f46d43','#fdae61','#fee090','#ffffbf','#e0f3f8','#abd9e9','#74add1','#4575b4','#313695'), domain = precPalDomain, reverse = FALSE)
+      stormPal <- colorNumeric(c('#40004b','#762a83','#9970ab','#c2a5cf','#e7d4e8','#f7f7f7','#d9f0d3','#a6dba0','#5aae61','#1b7837','#00441b'),domain = stormPalDomain, reverse = TRUE)
       
       # Create Labels for our data output in Popups
       labels_temp <- sprintf("%s &#176;C", format(temp_data,digits = 2)) %>% lapply(htmltools::HTML)
-      labels_prec <- sprintf("%s m&sup3;", format(prec_data,digits = 2)) %>% lapply(htmltools::HTML)
-      labels_storm <- sprintf("%s Unwetter", format(storm_data,digits = 2)) %>% lapply(htmltools::HTML)
+      labels_prec <- sprintf("%s  mm", format(prec_data,digits = 2)) %>% lapply(htmltools::HTML)
+      labels_storm <- sprintf("%s Unwetter", storm_data_pal) %>% lapply(htmltools::HTML)
       
       # Generate Squares on the map for temperature
       leafletProxy("map", data = geojson_polygon_filtered_data) %>%
@@ -77,10 +73,10 @@ shinyServer(function(input, output) {
                     smoothFactor = 0.2,
                     fillOpacity = 0.8,
                     fillColor = ~tempPal(temp_data),
-                    highlightOptions = highlightOptions(
-                      color = "white",
-                      weight = 2,
-                      bringToFront = TRUE),
+                    # highlightOptions = highlightOptions(
+                    #   color = "white",
+                    #   weight = 2,
+                    #   bringToFront = TRUE),
                     label = labels_temp,
                     group = "temp")
       
@@ -107,7 +103,7 @@ shinyServer(function(input, output) {
         activeGroup <- input$map_groups
         if("temp" %in% activeGroup){
           leafletProxy("map") %>%
-            addLegend("bottomright", pal =tempPal, values = (temp_data_pal),
+            addLegend("bottomright", pal =tempPal, values = tempPalDomain,
                       title = "Diff. Temperatur",
                       labFormat = labelFormat(suffix = "°C"),
                       opacity = 1,
@@ -115,7 +111,7 @@ shinyServer(function(input, output) {
         }
         if("prec" %in% activeGroup){
           leafletProxy("map") %>%
-            addLegend("bottomright", pal =precPal, values = (prec_data_pal),
+            addLegend("bottomright", pal =precPal, values = precPalDomain,
                       title = "Diff. Niederschlag",
                       labFormat = labelFormat(suffix = "mm"),
                       opacity = 1,
@@ -123,7 +119,7 @@ shinyServer(function(input, output) {
         }
         if("storm" %in% activeGroup){
           leafletProxy("map") %>%
-            addLegend("bottomright", pal =stormPal, values = storm_data_pal,
+            addLegend("bottomright", pal =stormPal, values = stormPalDomain,
                       title = "Diff. Unwetter",
                       labFormat = labelFormat(suffix = " Anz."),
                       opacity = 1,
@@ -175,42 +171,72 @@ shinyServer(function(input, output) {
   
   # function that generates plots
   output$tempyPlot <- renderPlot({
-    ggplot(sdf_data_global, aes(Year,TMAX_year)) + geom_point() + geom_smooth()
+    ggplot(sdf_data_global, aes(Year,TMAX_year)) +
+      xlab("Jahr") + ylab("Temperatur (°C/10)") + ggtitle("Jährliche Temperatur Differenz Entwicklung in °C/10 im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      geom_point() + geom_smooth() +
+      theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
   
   output$tempsPlot <- renderPlot({
-    ggplot(sdf_data_global, aes(Year,TMAX_summer)) + geom_point() + geom_smooth()
+    ggplot(sdf_data_global, aes(Year,TMAX_summer)) +
+      xlab("Jahr") + ylab("Temperatur (°C/10)") + ggtitle("Temperatur Differenz Entwicklung im Zeitraum von Mai bis Nov (Sommer) in °C/10 im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      geom_point() + geom_smooth() +
+      theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
   
   output$tempwPlot <- renderPlot({
-    ggplot(sdf_data_global, aes(Year,TMAX_winter)) + geom_point() + geom_smooth()
+    ggplot(sdf_data_global, aes(Year,TMAX_winter)) + 
+      xlab("Jahr") + ylab("Temperatur (°C/10)") + ggtitle("Temperatur Differenz Entwicklung im Zeitraum von Nov bis Mai (Winter) in °C/10 im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      geom_point() + geom_smooth() +
+      theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
 
   output$co2Plot <- renderPlot({
-    ggplot(sdf_data_global, aes(Year,Total_in_mega_tons)) + geom_point() + geom_smooth()
+    ggplot(sdf_data_global, aes(Year,Total_in_mega_tons)) +
+      xlab("Jahr") + ylab("CO2 (mt)") + ggtitle("CO2 Ausstoß Entwicklung in Megatonnen") +
+      geom_point() + geom_smooth() +
+      theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
 
   output$precyPlot <- renderPlot({
-    ggplot(sdf_data_global, aes(Year,PRCP_year)) + geom_point() + geom_smooth()
+    ggplot(sdf_data_global, aes(Year,PRCP_year)) +
+      xlab("Jahr") + ylab("Niederschlag (mm/10)") + ggtitle("Jährliche Niederschlag Differenz Entwicklung in mm/10 im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      geom_point() + geom_smooth() +
+      theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
   
   output$precsPlot <- renderPlot({
-    ggplot(sdf_data_global, aes(Year,PRCP_summer)) + geom_point() + geom_smooth()
+    ggplot(sdf_data_global, aes(Year,PRCP_summer)) +
+      xlab("Jahr") + ylab("Niederschlag (mm/10)") + ggtitle("Niederschlag Differenz Entwicklung im Zeitraum von Mai bis Nov (Sommer) in mm/10 im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      geom_point() + geom_smooth() + 
+      theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
   
   output$precwPlot <- renderPlot({
-    ggplot(sdf_data_global, aes(Year,PRCP_winter)) + geom_point() + geom_smooth()
+    ggplot(sdf_data_global, aes(Year,PRCP_winter)) +
+      xlab("Jahr") + ylab("Niederschlag (mm/10)") + ggtitle("Niederschlag Differenz Entwicklung im Zeitraum von Nov bis Mai (Winter) in mm/10 im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      geom_point() + geom_smooth() +
+      theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
 
   output$stormyPlot <- renderPlot({
-    ggplot(sdf_data_global, aes(Year,WTXX_year)) + geom_point() + geom_smooth()
+    ggplot(sdf_data_global, aes(Year,WTXX_year)) +
+      xlab("Jahr") + ylab("Unwetter (Anz. Unwetter/Anz. Stationen)") + ggtitle("Jährliche Unwetter Differenz Entwicklung in Anzahl Unwetter/Anzahl Stationen im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      geom_point() + geom_smooth() +
+      theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
   
   output$stormsPlot <- renderPlot({
-    ggplot(sdf_data_global, aes(Year,WTXX_summer)) + geom_point() + geom_smooth()
+    ggplot(sdf_data_global, aes(Year,WTXX_summer)) +
+      xlab("Jahr") + ylab("Unwetter (Anz. Unwetter/Anz. Stationen)") + ggtitle("Unwetter Differenz Entwicklung im Zeitraum von Mai bis Nov (Sommer) in Anzahl Unwetter/Anzahl Stationen im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      geom_point() + geom_smooth() +
+      theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
   
   output$stormwPlot <- renderPlot({
-    ggplot(sdf_data_global, aes(Year,WTXX_winter)) + geom_point() + geom_smooth()
+    ggplot(sdf_data_global, aes(Year,WTXX_winter)) +
+      xlab("Jahr") + ylab("Unwetter (Anz. Unwetter/Anz. Stationen)") + ggtitle("Unwetter Differenz Entwicklung im Zeitraum von Nov bis Mai (Winter) in Anzahl Unwetter/Anzahl Stationen im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      geom_point() + geom_smooth() +
+      theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
 })
