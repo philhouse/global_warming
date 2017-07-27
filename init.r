@@ -10,6 +10,8 @@ path_baseline <- paste(path_processed, "baseline\\*", sep = "")
 path_tiles_initial = "R:\\Big Data Prak\\data_processed\\tiles_initial.csv"
 path_weather_data = paste(path_processed, "weather_data\\", sep="")
 
+tile_size <- 10
+
 init = function (install = FALSE) {
   if (install == TRUE) install_packages()
   load_packages()

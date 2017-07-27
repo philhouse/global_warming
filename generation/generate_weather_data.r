@@ -11,6 +11,16 @@ sdf_stations <- read_stations(path_stations)
 year_start <- 1917
 year_end <- 2016
 
+# change Title_Id to tile center lat and long
+sdf_stations_tile_center <- read_stations_org(path_stations_org)
+# calculate tile center
+sdf_stations_tile_center <- sdf_stations_tile_center %>% mutate(
+  Lat = as.integer((Lat + 90) %/% tile_size) * tile_size - 90 + 5,
+  Long = as.integer((Long + 180) %/% tile_size) * tile_size - 180 + 5
+)
+sdf_stations_tile_center <- inner_join(sdf_stations, sdf_stations_tile_center, by ="Id") %>% group_by(Tile_Id, Lat, Long) %>% summarise()
+
+
 for(i in (year_start:year_end)) {
   # reject data from unconsidered tiles (join and filter weather data)
   sdf_weather_data <- read_weather_data_org(path_weather_yearly, i)
@@ -70,6 +80,9 @@ for(i in (year_start:year_end)) {
   
   sdf_weather_data <- copy_to(sc, df_weather_data, name = 'weather_data', overwrite = TRUE)
   sdf_weather_data <- sdf_weather_data %>% mutate(Year = as.integer(i))
+  
+  # exchange Tile_Id by Lat and Long of tile center
+  sdf_weather_data <- inner_join(sdf_weather_data, sdf_stations_tile_center) %>% select(-Tile_Id)
   
   spark_write_csv(sdf_weather_data, path_weather_data, mode={if (i != year_start) "append" else "overwrite"})
   
