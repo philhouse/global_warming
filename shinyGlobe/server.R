@@ -7,8 +7,8 @@ data <- spark_read_csv(sc,name="weather_data",path = path_weather_data)
 
 # Convert weather data to global data for plots
 sdf_weather_data_global <- data %>% group_by(Year) %>%
-  summarise(PRCP_year = mean(PRCP_year), PRCP_winter = mean(PRCP_winter), PRCP_summer = mean(PRCP_summer),
-            TMAX_year = mean(TMAX_year), TMAX_winter = mean(TMAX_winter), TMAX_summer = mean(TMAX_summer),
+  summarise(PRCP_year = mean(PRCP_year) / 10, PRCP_winter = mean(PRCP_winter) / 10, PRCP_summer = mean(PRCP_summer) / 10,
+            TMAX_year = mean(TMAX_year) / 10, TMAX_winter = mean(TMAX_winter) / 10, TMAX_summer = mean(TMAX_summer) / 10,
             WTXX_year = mean(WTXX_year), WTXX_winter = mean(WTXX_winter), WTXX_summer = mean(WTXX_summer)) %>% arrange(Year)
 sdf_co2_global <- read_co2_global(path_co2_global)
 sdf_data_global <- left_join(sdf_weather_data_global, sdf_co2_global, by = "Year") %>% collect()
@@ -49,7 +49,7 @@ shinyServer(function(input, output) {
       # Convert into numeric for correct Calculation of Color Palette and removal of NAs
       # temp_data_pal <- as.numeric(gsub("[^.0-9-]+","",temp_data))[!is.na(temp_data)]
       # prec_data_pal <- as.numeric(gsub("[^.0-9-]+","",prec_data))[!is.na(prec_data)]
-      storm_data_pal <- as.numeric(gsub("[^.0-9-]+","",storm_data))[!is.na(storm_data)] / 0.01
+      storm_data_pal <- as.numeric(gsub("[^.0-9-]+","",storm_data))[!is.na(storm_data)] * 100
       
       # Color Palette Domains
       tempPalDomain <- c(-12,12)
@@ -170,73 +170,86 @@ shinyServer(function(input, output) {
   
   
   # function that generates plots
+  s_summer = "Sommerliches Halbjahr (4. Mai - 3. Nov.)"
+  s_winter = "Winterliches Halbjahr (3. Nov. - 4. Mai)"
+  s_year = "Jahr"
+  s_temp = "Temperaturdifferenz (°C)"
+  s_prcp = "Niederschlagsdifferenz (mm)"
+  s_storm = "Differenz der normierten Unwetteranzahl"
+  s_storm_detail = "(Anz. Unwetter / Anz. Stationen)"
+  
   output$tempyPlot <- renderPlot({
     ggplot(sdf_data_global, aes(Year,TMAX_year)) +
-      xlab("Jahr") + ylab("Temperatur (°C/10)") + ggtitle("Jährliche Temperatur Differenz Entwicklung in °C/10 im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      xlab(s_year) + ylab(s_temp) + ggtitle(generate_plot_title(s_temp, s_year)) +
       geom_point() + geom_smooth() +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
   
   output$tempsPlot <- renderPlot({
     ggplot(sdf_data_global, aes(Year,TMAX_summer)) +
-      xlab("Jahr") + ylab("Temperatur (°C/10)") + ggtitle("Temperatur Differenz Entwicklung im Zeitraum von Mai bis Nov (Sommer) in °C/10 im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      xlab(s_year) + ylab(s_temp) + ggtitle(generate_plot_title(s_temp, s_summer)) +
       geom_point() + geom_smooth() +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
   
   output$tempwPlot <- renderPlot({
     ggplot(sdf_data_global, aes(Year,TMAX_winter)) + 
-      xlab("Jahr") + ylab("Temperatur (°C/10)") + ggtitle("Temperatur Differenz Entwicklung im Zeitraum von Nov bis Mai (Winter) in °C/10 im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      xlab(s_year) + ylab(s_temp) + ggtitle(generate_plot_title(s_temp, s_winter)) +
       geom_point() + geom_smooth() +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
 
   output$co2Plot <- renderPlot({
     ggplot(sdf_data_global, aes(Year,Total_in_mega_tons)) +
-      xlab("Jahr") + ylab("CO2 (mt)") + ggtitle("CO2 Ausstoß Entwicklung in Megatonnen") +
+      xlab(s_year) + ylab("CO2-Ausstoß (Mt)") + ggtitle("Entwicklung des globalen, geschätzten CO2-Ausstoßes (Mt) (Summe der Werte für Gase, Flüssigkeiten, Feststoffe, Zementproduktion, Abfackelung)") +
       geom_point() + geom_smooth() +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
 
   output$precyPlot <- renderPlot({
     ggplot(sdf_data_global, aes(Year,PRCP_year)) +
-      xlab("Jahr") + ylab("Niederschlag (mm/10)") + ggtitle("Jährliche Niederschlag Differenz Entwicklung in mm/10 im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      xlab(s_year) + ylab(s_prcp) + ggtitle(generate_plot_title(s_prcp, s_year)) +
       geom_point() + geom_smooth() +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
   
   output$precsPlot <- renderPlot({
     ggplot(sdf_data_global, aes(Year,PRCP_summer)) +
-      xlab("Jahr") + ylab("Niederschlag (mm/10)") + ggtitle("Niederschlag Differenz Entwicklung im Zeitraum von Mai bis Nov (Sommer) in mm/10 im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      xlab(s_year) + ylab(s_prcp) + ggtitle(generate_plot_title(s_prcp, s_summer)) +
       geom_point() + geom_smooth() + 
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
   
   output$precwPlot <- renderPlot({
     ggplot(sdf_data_global, aes(Year,PRCP_winter)) +
-      xlab("Jahr") + ylab("Niederschlag (mm/10)") + ggtitle("Niederschlag Differenz Entwicklung im Zeitraum von Nov bis Mai (Winter) in mm/10 im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      xlab(s_year) + ylab(s_prcp) + ggtitle(generate_plot_title(s_prcp, s_winter)) +
       geom_point() + geom_smooth() +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
 
   output$stormyPlot <- renderPlot({
     ggplot(sdf_data_global, aes(Year,WTXX_year)) +
-      xlab("Jahr") + ylab("Unwetter (Anz. Unwetter/Anz. Stationen)") + ggtitle("Jährliche Unwetter Differenz Entwicklung in Anzahl Unwetter/Anzahl Stationen im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      xlab(s_year) + ylab(s_storm) + ggtitle(generate_plot_title(s_storm,s_year, s_storm_detail)) +
       geom_point() + geom_smooth() +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
   
   output$stormsPlot <- renderPlot({
     ggplot(sdf_data_global, aes(Year,WTXX_summer)) +
-      xlab("Jahr") + ylab("Unwetter (Anz. Unwetter/Anz. Stationen)") + ggtitle("Unwetter Differenz Entwicklung im Zeitraum von Mai bis Nov (Sommer) in Anzahl Unwetter/Anzahl Stationen im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      xlab(s_year) + ylab(s_storm) + ggtitle(generate_plot_title(s_storm, s_summer, s_storm_detail)) +
       geom_point() + geom_smooth() +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
   
   output$stormwPlot <- renderPlot({
     ggplot(sdf_data_global, aes(Year,WTXX_winter)) +
-      xlab("Jahr") + ylab("Unwetter (Anz. Unwetter/Anz. Stationen)") + ggtitle("Unwetter Differenz Entwicklung im Zeitraum von Nov bis Mai (Winter) in Anzahl Unwetter/Anzahl Stationen im Vergleich zum Durchschnittsjahr (1917-1946)") +
+      xlab(s_year) + ylab(s_storm) + ggtitle(generate_plot_title(s_storm, s_winter, s_storm_detail)) +
       geom_point() + geom_smooth() +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
 })
+
+generate_plot_title = function(s_measure, s_time, s_measure_detail = "") {
+  if (s_measure_detail != "") s_measure_detail <- paste(" ", s_measure_detail, sep="")
+  paste("Entwicklung der globalen ", s_measure, s_measure_detail, " pro ", s_time, " im Vergleich zur Baseline (Durchschnittswerte der Jahre 1917-1946)", sep="")
+}

@@ -4,8 +4,8 @@ library(shiny)
 # Temperature select options 
 vars_temp <- c(
   "Ganzes Jahr" = "time_span_year",
-  "Mai - Nov (Sommer)" = "time_span_summer",
-  "Nov - Mai (Winter)" = "time_span_winter"
+  "Sommerliches Halbjahr (4. Mai - 3. Nov.)" = "time_span_summer",
+  "Winterliches Halbjahr (3. Nov. - 4. Mai)" = "time_span_winter"
 )
 # Define UI for application
 shinyUI(fluidPage(
