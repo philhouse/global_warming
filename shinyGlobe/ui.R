@@ -108,6 +108,17 @@ shinyUI(fluidPage(
                                
                  )
              )
+             ),
+    tabPanel("Details zu Daten",
+             # Detail Screen for explanation of our data
+             div(class="plots",
+                 tags$head(
+                   # Include our custom CSS
+                   includeCSS("style.css")
+                 ),
+                 h3("Unwetterdaten"),
+                 p("Blub Informationen")
              )
+    )
   )
 ))
