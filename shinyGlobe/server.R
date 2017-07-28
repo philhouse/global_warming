@@ -51,14 +51,16 @@ shinyServer(function(input, output) {
       # prec_data_pal <- as.numeric(gsub("[^.0-9-]+","",prec_data))[!is.na(prec_data)]
       storm_data_pal <- as.numeric(gsub("[^.0-9-]+","",storm_data))[!is.na(storm_data)] * 100
       
+      redToBlueColors <- c('#67001f','#b2182b','#d6604d','#f4a582','#fddbc7','#f7f7f7','#d1e5f0','#92c5de','#4393c3','#2166ac','#053061')
       # Color Palette Domains
       tempPalDomain <- c(-12,12)
       precPalDomain <- c(-20,20)
       stormPalDomain <- c(-20,20)
       
       # Create Color Palette for temp, prec, storm
-      tempPal <- colorNumeric(c('#67001f','#b2182b','#d6604d','#f4a582','#fddbc7','#f7f7f7','#d1e5f0','#92c5de','#4393c3','#2166ac','#053061'), domain = tempPalDomain, reverse = TRUE)
-      precPal <- colorNumeric(c('#a50026','#d73027','#f46d43','#fdae61','#fee090','#ffffbf','#e0f3f8','#abd9e9','#74add1','#4575b4','#313695'), domain = precPalDomain, reverse = FALSE)
+      tempPal <- colorNumeric(redToBlueColors, domain = tempPalDomain, reverse = TRUE)
+      precPal <- colorNumeric(redToBlueColors, domain = precPalDomain, reverse = FALSE)
+      # precPal <- colorNumeric(c('#a50026','#d73027','#f46d43','#fdae61','#fee090','#ffffbf','#e0f3f8','#abd9e9','#74add1','#4575b4','#313695'), domain = precPalDomain, reverse = FALSE)
       stormPal <- colorNumeric(c('#40004b','#762a83','#9970ab','#c2a5cf','#e7d4e8','#f7f7f7','#d9f0d3','#a6dba0','#5aae61','#1b7837','#00441b'),domain = stormPalDomain, reverse = TRUE)
       
       # Create Labels for our data output in Popups
@@ -79,16 +81,7 @@ shinyServer(function(input, output) {
                     #   bringToFront = TRUE),
                     label = labels_temp,
                     group = "temp")
-      
-      # Generate Circles on map for Precipitation
-      leafletProxy("map", data = geojson_circle_data) %>%
-        addCircles(radius = 200000,
-                   stroke = FALSE,
-                   fillColor = ~precPal(prec_data),
-                   fillOpacity = 1,
-                   label = labels_prec,
-                   group = "prec")
-      
+
       # Generate Circles on map for Storms
       leafletProxy("map", data = geojson_circle_data) %>%
         addCircles(radius = 300000,
@@ -97,6 +90,15 @@ shinyServer(function(input, output) {
                    fillOpacity = 1,
                    label = labels_storm,
                    group = "storm")
+      
+      # Generate Circles on map for Precipitation (last because it is the smallest circle and is seen at any time)
+      leafletProxy("map", data = geojson_circle_data) %>%
+        addCircles(radius = 200000,
+                   stroke = FALSE,
+                   fillColor = ~precPal(prec_data),
+                   fillOpacity = 1,
+                   label = labels_prec,
+                   group = "prec")
       
       # Obeserve which Checkboxes Selected (which values to show) to decide which Legends to show
       observeEvent(input$map_groups,{
@@ -201,7 +203,7 @@ shinyServer(function(input, output) {
 
   output$co2Plot <- renderPlot({
     ggplot(sdf_data_global, aes(Year,Total_in_mega_tons)) +
-      xlab(s_year) + ylab("CO2-Ausstoß (Mt)") + ggtitle("Entwicklung des globalen, geschätzten CO2-Ausstoßes (Mt) (Summe der Werte für Gase, Flüssigkeiten, Feststoffe, Zementproduktion, Abfackelung)") +
+      xlab(s_year) + ylab("CO2-Ausstoß (Mt)") + ggtitle("Entwicklung des globalen, geschätzten CO2-Ausstoßes (Mt)\n(Summe der Werte für Gase, Flüssigkeiten, Feststoffe, Zementproduktion, Abfackelung)") +
       geom_point() + geom_smooth() +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
@@ -251,5 +253,5 @@ shinyServer(function(input, output) {
 
 generate_plot_title = function(s_measure, s_time, s_measure_detail = "") {
   if (s_measure_detail != "") s_measure_detail <- paste(" ", s_measure_detail, sep="")
-  paste("Entwicklung der globalen ", s_measure, s_measure_detail, " pro ", s_time, " im Vergleich zur Baseline (Durchschnittswerte der Jahre 1917-1946)", sep="")
+  paste(paste("Entwicklung der globalen ", s_measure, s_measure_detail, " pro ", s_time,sep=""), "im Vergleich zur Baseline (Durchschnittswerte der Jahre 1917-1946)", sep="\n")
 }

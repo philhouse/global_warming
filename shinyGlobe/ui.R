@@ -38,8 +38,8 @@ shinyUI(fluidPage(
                                h3("Anzuzeigende Werte"),
                                checkboxInput("showTemp",label = "Temperatur", value = TRUE),
                                # checkboxInput("showCO2",label = "CO2", value = FALSE),
-                               checkboxInput("showPrec",label = "Niederschlag", value = FALSE),
                                checkboxInput("showStorm",label = "Unwetter", value = FALSE),
+                               checkboxInput("showPrec",label = "Niederschlag", value = FALSE),
                                # conditionalPanel("input.showTemp == true",
                                selectInput("time_span", "Zeitraum", vars_temp)
                                # )
@@ -49,13 +49,12 @@ shinyUI(fluidPage(
              )
              ),
     tabPanel("Globale Plots",
-             div(class="outer",
+             div(class="plots",
                  
                  tags$head(
                    # Include our custom CSS
                    includeCSS("style.css")
                  ),
-                 h2(),
                  # Plot
                  conditionalPanel(condition = "input.showTempPlot == true",
                                   conditionalPanel(condition = "input.time_span_plot == 'time_span_year'",
