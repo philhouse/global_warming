@@ -1,0 +1,12 @@
+s_summer = "Sommerliches Halbjahr (4. Mai - 3. Nov.)"
+s_winter = "Winterliches Halbjahr (3. Nov. - 4. Mai)"
+s_year = "Jahr"
+s_temp = "Differenz der maximalen Tagestemperaturen (°C)"
+s_prcp = "Niederschlagsdifferenz (mm)"
+s_storm = "Differenz der normierten Unwetteranzahl"
+s_storm_detail = "(Anz. Unwetter / Anz. Stationen)"
+s_emission = "CO2-Emission"
+
+s_temp_legend = "Temperaturdiff."
+s_prcp_legend = "Niederschlagsdiff."
+s_storm_legend = "Unwetterdiff."

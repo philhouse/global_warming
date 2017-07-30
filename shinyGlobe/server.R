@@ -1,6 +1,6 @@
+source("lang.R", encoding = "UTF-8")
 source("../init.r")
 source("../emission.r")
-
 init()
 
 data <- spark_read_csv(sc,name="weather_data",path = path_weather_data)
@@ -59,7 +59,7 @@ shinyServer(function(input, output) {
       
       # Create Color Palette for temp, prec, storm
       tempPal <- colorNumeric(redToBlueColors, domain = tempPalDomain, reverse = TRUE)
-      precPal <- colorNumeric(redToBlueColors, domain = precPalDomain, reverse = FALSE)
+      precPal <- colorNumeric(redToBlueColors, domain = precPalDomain, reverse = TRUE)
       # precPal <- colorNumeric(c('#a50026','#d73027','#f46d43','#fdae61','#fee090','#ffffbf','#e0f3f8','#abd9e9','#74add1','#4575b4','#313695'), domain = precPalDomain, reverse = FALSE)
       stormPal <- colorNumeric(c('#40004b','#762a83','#9970ab','#c2a5cf','#e7d4e8','#f7f7f7','#d9f0d3','#a6dba0','#5aae61','#1b7837','#00441b'),domain = stormPalDomain, reverse = TRUE)
       
@@ -106,23 +106,23 @@ shinyServer(function(input, output) {
         if("temp" %in% activeGroup){
           leafletProxy("map") %>%
             addLegend("bottomright", pal =tempPal, values = tempPalDomain,
-                      title = "Diff. Temperatur",
-                      labFormat = labelFormat(suffix = "°C"),
+                      title = s_temp_legend,
+                      labFormat = labelFormat(suffix = " °C"),
                       opacity = 1,
                       layerId = "tempLegend")
         }
         if("prec" %in% activeGroup){
           leafletProxy("map") %>%
             addLegend("bottomright", pal =precPal, values = precPalDomain,
-                      title = "Diff. Niederschlag",
-                      labFormat = labelFormat(suffix = "mm"),
+                      title = s_prcp_legend,
+                      labFormat = labelFormat(suffix = " mm"),
                       opacity = 1,
                       layerId = "precLegend")
         }
         if("storm" %in% activeGroup){
           leafletProxy("map") %>%
             addLegend("bottomright", pal =stormPal, values = stormPalDomain,
-                      title = "Diff. Unwetter",
+                      title = s_storm_legend,
                       labFormat = labelFormat(suffix = " Anz."),
                       opacity = 1,
                       layerId = "stormLegend")
@@ -172,14 +172,7 @@ shinyServer(function(input, output) {
   
   
   # function that generates plots
-  s_summer = "Sommerliches Halbjahr (4. Mai - 3. Nov.)"
-  s_winter = "Winterliches Halbjahr (3. Nov. - 4. Mai)"
-  s_year = "Jahr"
-  s_temp = "Temperaturdifferenz (°C)"
-  s_prcp = "Niederschlagsdifferenz (mm)"
-  s_storm = "Differenz der normierten Unwetteranzahl"
-  s_storm_detail = "(Anz. Unwetter / Anz. Stationen)"
-  
+
   output$tempyPlot <- renderPlot({
     ggplot(sdf_data_global, aes(Year,TMAX_year)) +
       xlab(s_year) + ylab(s_temp) + ggtitle(generate_plot_title(s_temp, s_year)) +
@@ -203,7 +196,7 @@ shinyServer(function(input, output) {
 
   output$co2Plot <- renderPlot({
     ggplot(sdf_data_global, aes(Year,Total_in_mega_tons)) +
-      xlab(s_year) + ylab("CO2-Ausstoß (Mt)") + ggtitle("Entwicklung des globalen, geschätzten CO2-Ausstoßes (Mt)\n(Summe der Werte für Gase, Flüssigkeiten, Feststoffe, Zementproduktion, Abfackelung)") +
+      xlab(s_year) + ylab("CO2-Ausstoß (Mt)") + ggtitle("Entwicklung des globalen, geschätzten CO2-Ausstoßes (Mt)") +
       geom_point() + geom_smooth() +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14), title = element_text(size=14))
   })
