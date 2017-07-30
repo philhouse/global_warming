@@ -53,9 +53,9 @@ shinyServer(function(input, output) {
       
       redToBlueColors <- c('#67001f','#b2182b','#d6604d','#f4a582','#fddbc7','#f7f7f7','#d1e5f0','#92c5de','#4393c3','#2166ac','#053061')
       # Color Palette Domains
-      tempPalDomain <- c(-12,12)
-      precPalDomain <- c(-20,20)
-      stormPalDomain <- c(-20,20)
+      tempPalDomain <- c(-12,12,NA)
+      precPalDomain <- c(-20,20,NA)
+      stormPalDomain <- c(-20,20,NA)
       
       # Create Color Palette for temp, prec, storm
       tempPal <- colorNumeric(redToBlueColors, domain = tempPalDomain, reverse = TRUE)
@@ -108,7 +108,7 @@ shinyServer(function(input, output) {
             addLegend("bottomright", pal =tempPal, values = tempPalDomain,
                       title = s_temp_legend,
                       labFormat = labelFormat(suffix = " °C"),
-                      opacity = 1,
+                      opacity = 0.6,
                       layerId = "tempLegend")
         }
         if("prec" %in% activeGroup){
@@ -116,7 +116,7 @@ shinyServer(function(input, output) {
             addLegend("bottomright", pal =precPal, values = precPalDomain,
                       title = s_prcp_legend,
                       labFormat = labelFormat(suffix = " mm"),
-                      opacity = 1,
+                      opacity = 0.6,
                       layerId = "precLegend")
         }
         if("storm" %in% activeGroup){
@@ -124,7 +124,7 @@ shinyServer(function(input, output) {
             addLegend("bottomright", pal =stormPal, values = stormPalDomain,
                       title = s_storm_legend,
                       labFormat = labelFormat(suffix = " Anz."),
-                      opacity = 1,
+                      opacity = 0.6,
                       layerId = "stormLegend")
         }
       })
