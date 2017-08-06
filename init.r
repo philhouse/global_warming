@@ -17,6 +17,8 @@ path_processed <- "F:\\Projekte\\big_data_praktikum\\data_processed\\"
 path_baseline <- paste(path_processed, "baseline\\*", sep = "")
 path_tiles_initial = paste(path_processed, "tiles_initial.csv", sep = "")
 path_weather_data = paste(path_processed, "weather_data\\", sep="")
+path_baselines <- "R:\\Big Data Prak\\baselines\\weather_per_tile"
+path_tiles_per_year = "R:\\Big Data Prak\\data_analyses\\tiles_per_year.csv"
 
 tile_size <- 10
 
