@@ -19,7 +19,7 @@ year_end <- year_start + 30 - 1
 
 # write list of all active tiles per year
 for(i in (year_start:year_end)) {
-  sdf_weather_data <- read_weather_data_org(path_weather_yearly, i)
+  sdf_weather_data <- read_weather_data_org(path_weather_yearly_org, i)
   sdf_weather_data <- inner_join(sdf_weather_data, sdf_stations, by=c("Station" = "Id"))
   
   sdf_tiles_per_year <- sdf_weather_data %>% group_by(Tile_Id)  %>% summarise() %>% mutate(Year = as.integer(i))
@@ -56,7 +56,7 @@ sdf_tiles_initial <- read_tiles_initial(path_tiles_initial)
 # filter weather data by initial tiles and create one big file
 for(i in (year_start:year_end)) {
   # reject data from unconsidered tiles (join and filter weather data)
-  sdf_weather_data <- read_weather_data_org(path_weather_yearly, i)
+  sdf_weather_data <- read_weather_data_org(path_weather_yearly_org, i)
   sdf_weather_data <- inner_join(sdf_weather_data, sdf_stations, by=c("Station" = "Id"))
   sdf_weather_data <- inner_join(sdf_tiles_initial, sdf_weather_data, by = "Tile_Id") # filter all data records that belong to an unconsidered tile
   

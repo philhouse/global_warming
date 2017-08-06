@@ -7,7 +7,7 @@ weather_elements <- c("PRCP", "SNOW",
 year_start <- 1763
 for(i in (year_start:2017)) {
   sdf_weather_data <- spark_read_csv(sc, "weather_data", 
-                         path = paste(path_weather_yearly,i,".csv", sep = ""), 
+                         path = paste(path_weather_yearly_org,i,".csv", sep = ""), 
                          header = FALSE, 
                          infer_schema = FALSE,
                          columns = list(

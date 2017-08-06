@@ -9,6 +9,7 @@ read_weather_baseline = function (path) {
   #sdf_weather_baseline %>% filter(! Element == "SNOW") #ToDo: Rewrite baseline file
 }
 
+# ToDo: Move this to tile.r?
 read_tiles_initial = function (path) {
   sdf_tiles_initial <- spark_read_csv(sc, "tiles_initial", 
                                       path = path, 

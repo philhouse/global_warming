@@ -1,32 +1,17 @@
 # Erstellt Plot mit Anzahl der Kacheln die abgedeckt werden über die Jahre, um damit das optimale Startjahr bzgl. Baselines bestimmen zukönnen (möglichst frühes Jahr mit großer Abdeckung)
 
+source("../station.r")
+
 # Plot zeigt: 1957 ist ein gutes Startjahr
 
 filename_prefix_stations_year = "stations_"
 
-# Lese Stationsdatei
-df_stations <- read.fwf(path_stations, 
-                        widths = c(11,9,10,7,3,31,4,4,6), 
-                        header = FALSE,
-                        comment.char = '',
-                        strip.white = TRUE,
-                        col.names = list("Id",
-                                         "Lat",
-                                         "Long",
-                                         "Elevation",
-                                         "State",
-                                         "Name",
-                                         "GSN",
-                                         "HCN_CRN",
-                                         "WMO_Id")
-)
-sdf_stations <- copy_to(sc, df_stations, name = 'stations', overwrite = TRUE)
-sdf_stations <- sdf_stations %>% select(Id, Lat, Long)
+df_stations <- read.stations_org(path_stations)
 
 # Exportiere Liste aller Stationen in eine CSV pro Jahr. Spalten: Station, Lat, Long sowie jeweils Lat_Id, Long_Id und Id für die Kachelgrößen 2.5, 5 und 10
 year_start <- 1763
 for(i in (year_start:2017)) {
-  sdf_stations_per_year <- read_weather_data(path_weather_yearly, i)
+  sdf_stations_per_year <- read_weather_data(path_weather_yearly_org, i)
   
   # Erstelle Liste der Stationen, die im jeweiligen Jahr aktiv waren.
   sdf_stations_per_year <- sdf_stations_per_year %>% group_by(Station)  %>% summarise()
