@@ -1,6 +1,6 @@
-source("lang.R", encoding = "UTF-8")
-source("../init.r")
-source("../emission.r")
+source("lang.R", encoding = "UTF-8", local = TRUE)
+source("init.r")
+source("emission.r")
 init()
 
 data <- spark_read_csv(sc,name="weather_data",path = path_weather_data)
