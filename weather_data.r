@@ -6,20 +6,11 @@ read_weather_baseline = function (path) {
                                            Tile_Id = "character",
                                            Value = "numeric")
   )
-  #sdf_weather_baseline %>% filter(! Element == "SNOW") #ToDo: Rewrite baseline file
 }
 
-# ToDo: Move this to tile.r?
-read_tiles_initial = function (path) {
-  sdf_tiles_initial <- spark_read_csv(sc, "tiles_initial", 
-                                      path = path, 
-                                      header = TRUE, 
-                                      infer_schema = TRUE)
-}
-
-read_weather_data_org = function (path, year) {
-  sdf_weather_data <- spark_read_csv(sc, "weather_data_org", 
-                                     path = paste(path, year,".csv", sep = ""), 
+read_weather_data_org_wtxx = function (path, year) {
+  sdf_data <- spark_read_csv(sc, "weather_data_org", 
+                                     path = paste0(path, year,".csv"), 
                                      header = FALSE, 
                                      infer_schema = FALSE,
                                      columns = list(
@@ -33,11 +24,45 @@ read_weather_data_org = function (path, year) {
                                        Time = "character"
                                      )
   )
+  
+  weather_elements <- c("PRCP", "TMAX")
+  stormy_elements <- c("WT02", "WT03", "WT04", "WT05", "WT07", "WT10", "WT11", "WT16", "WT17", "WT18")
+  
+  sdf_weather_data <- sdf_data %>% 
+    filter(Element %in% weather_elements && is.null(QFlag)) %>%
+    select(Station, Date, Element, Value)
+  sdf_stormy_data <- sdf_data %>% 
+    filter(Element %in% stormy_elements && is.null(QFlag)) %>% 
+    mutate(Element = "WTXX") %>%
+    group_by(Station, Date, Element) %>%
+    summarise(Value = sum(Value)) %>%
+    select(Station, Date, Element, Value)
+  sdf_data <- union_all(sdf_weather_data, sdf_stormy_data)
+  return(sdf_data)
+}
+
+read_weather_data_org = function (path, year) {
+  sdf_data <- spark_read_csv(sc, "weather_data_org", 
+                             path = paste0(path, year,".csv"), 
+                             header = FALSE, 
+                             infer_schema = FALSE,
+                             columns = list(
+                               Station = "character",
+                               Date = "character",
+                               Element = "character",
+                               Value = "integer",
+                               MFlag = "character",
+                               QFlag = "character",
+                               SFlag = "character",
+                               Time = "character"
+                             )
+  )
+  
   weather_elements <- c("PRCP", 
                         "TMAX", 
                         "WT02", "WT03", "WT04", "WT05", "WT07", "WT10", "WT11", "WT16", "WT17", "WT18")
-  sdf_weather_data <- sdf_weather_data %>% 
+  sdf_data <- sdf_data %>% 
     filter(is.null(QFlag) && Element %in% weather_elements) %>% 
     select(Station, Date, Element, Value)
-  return(sdf_weather_data)
+  return (sdf_data)
 }

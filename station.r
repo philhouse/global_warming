@@ -1,14 +1,5 @@
 source("tile.r")
 
-read_stations = function(path) {
-  sdf_stations <- spark_read_csv(sc, "stations",
-                 path = path,
-                 header = TRUE,
-                 infer_schema = TRUE
-                 )
-  sdf_stations %>% select(Id, Tile_Id)
-}
-
 read_stations_org = function(path) {
   df_stations <- read.fwf(path, 
                           widths = c(11,9,10,7,3,31,4,4,6), 
@@ -30,19 +21,22 @@ read_stations_org = function(path) {
   return(sdf_stations)
 }
 
-generate_stations_file = function (path_source, path_target, tile_size) {
-  sdf_stations <- import_stations_org(path_source)
-  
-  #ToDo: Find another way to outsource the til_id calculation. 
-  #      "It isn't possible to use custom functions in dplyr on a sql database."
-  #      (https://stackoverflow.com/questions/37933109/using-a-custom-function-inside-of-dplyr-mutate)
-  #      Try: vectorizing the tile function, e.g.: substr2 <- Vectorize(substr)
-  #sdf_stations <- sdf_stations %>% mutate(Tile_Id = get_tile_id(tile_size, Lat, Long))
-  sdf_stations <- sdf_stations %>% mutate(Tile_Id = paste(
-    as.integer(Lat %/% tile_size + 90/tile_size), 
-    "-", 
-    as.integer(Long %/% tile_size + 180/tile_size), 
-    sep=""))
-  sdf_stations <- sdf_stations %>% select(Id, Tile_Id)
-  write.table(sdf_stations, path_target, append=FALSE, na='', quote=FALSE, sep=",", col.names=TRUE, row.names=FALSE)
+# generate stations table with added information about the tile in which the station lies in (wide table approach)
+generate_tiled_stations_table = function (path_source, tile_size) {
+  print("Generating tiled stations table ...")
+  sdf_stations <- read_stations_org(path_source)
+  sdf_stations <- sdf_stations %>% 
+    # add tile id
+    mutate(Tile_Id = paste0(
+      as.integer(Lat %/% tile_size + 90/tile_size),
+      "-",
+      as.integer(Long %/% tile_size + 180/tile_size))
+      ) %>%
+    # add latitude and longitude of tile center
+    mutate(
+      Lat = as.integer((Lat + 90) %/% tile_size) * tile_size - 90 + (tile_size/2),
+      Long = as.integer((Long + 180) %/% tile_size) * tile_size - 180 + (tile_size/2)
+      )
+  print("... Finished generating tiled stations table.")
+  return(sdf_stations)
 }
