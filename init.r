@@ -1,7 +1,5 @@
 source("config.r", encoding = "UTF-8")
 
-tile_size <- 10
-
 init = function (install = FALSE) {
   if (install == TRUE) install_packages()
   load_packages()
@@ -28,8 +26,6 @@ load_packages = function () {
   library(sparklyr)
   library(dplyr)
   library(ggplot2)
-  library(rworldmap)
-  library(rworldxtra)
   library(shiny)
   library(tidyr)
   library(leaflet)
@@ -39,8 +35,8 @@ load_packages = function () {
 
 start_spark = function () {
   config <- spark_config()
-  config$`sparklyr.shell.driver-memory` <- "4G"
-  config$`sparklyr.shell.executor-memory` <- "4G"
-  config$`spark.yarn.executor.memoryOverhead` <- "1g"
+  config$`sparklyr.shell.driver-memory` <- "6G"
+  config$`sparklyr.shell.executor-memory` <- "6G"
+  config$`spark.yarn.executor.memoryOverhead` <- "2G"
   sc <<- spark_connect(master = "local", version = "2.1.0", config = config)
 }

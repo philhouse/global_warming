@@ -5,12 +5,15 @@ past_element_year <- 1
 start_row <- 1
 n <- nrow(data)
 # Generate Polygon data from point data in our file for Polygons on Map just for our data
+edge_distance = tile_size/2
 for(i in start_row:n){
-  lng <- as.numeric(data[i,12]-5)
-  lat <- as.numeric(data[i,11]-5)
+  lng <- as.numeric( data[i,12] - edge_distance) #ToDo: Get data by column name
+  lat <- as.numeric( data[i,11] - edge_distance)
   sub_data <- data[i,-(1:9)]
   # Create Polygons with data of point 
-  polygon_data <- Polygons(list(Polygon(cbind(c(lng,lng,(lng+10),(lng+10)),c(lat,(lat+10),(lat+10),lat)))),i)
+  polygon_data <- Polygons( list( Polygon( cbind( c( lng, lng, (lng + tile_size), (lng + tile_size)), 
+                                                  c( lat, (lat + tile_size), (lat + tile_size), lat)))),
+                            i)
   # Append Data in properties to SpatialPolygonDataFrame
   sp_poly <- SpatialPolygonsDataFrame(SpatialPolygons(list(polygon_data)),data = sub_data)
   
