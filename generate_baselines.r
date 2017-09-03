@@ -7,54 +7,73 @@ source("initial_tiles.r")
 
 # generates weather baseline year
 # During excecution multiple temporary files are written and read again. That way one can manually continue the script if the livelong excecution ran into an error at some point.
-generate_weather_data_baseline = function( path_weather_files, 
-                                           sdf_stations, 
-                                           path_tmp_files, 
-                                           path_target,
-                                           year_start_baseline, 
-                                           year_span_baseline, 
-                                           measurement_coverage_threshold){
-  
+generate_weather_data_baseline = function( 
+  path_weather_files, 
+  sdf_stations, 
+  path_tmp_files, 
+  path_target,
+  year_start_baseline, 
+  year_span_baseline, 
+  measurement_coverage_threshold)
+{
   print( "Generating baseline for weather data ...")
   
   year_end_baseline <- year_start_baseline + year_span_baseline - 1
-  path_tmp_tiles_yearly <- paste0( path_tmp_files, "tiles_yearly")
-  path_tmp_tiled_weather_data_yearly <- paste0( path_tmp_files, "tiled_weather_data_yearly")
+  path_tmp_tiles_yearly <- paste0( 
+    path_tmp_files, 
+    "tiles_yearly")
+  path_tmp_tiled_weather_data_yearly <- paste0( 
+    path_tmp_files, 
+    "tiled_weather_data_yearly")
   
-  sdf_tiles_initial <- get_initial_tiles( path_weather_files = path_weather_files, 
-                                          sdf_stations = sdf_stations, 
-                                          path_tmp_tiles_yearly = path_tmp_tiles_yearly, 
-                                          year_start = year_start_baseline, 
-                                          year_span = year_span_baseline, 
-                                          measurement_coverage_threshold = measurement_coverage_threshold)
+  sdf_tiles_initial <- get_initial_tiles( 
+    path_weather_files = path_weather_files, 
+    sdf_stations = sdf_stations, 
+    path_tmp_tiles_yearly = path_tmp_tiles_yearly, 
+    year_start = year_start_baseline, 
+    year_span = year_span_baseline, 
+    measurement_coverage_threshold = measurement_coverage_threshold)
   #spark_write_csv(sdf_tiles_initial, paste0(path_tmp_files, "\\tiles_initial"), mode="overwrite")
   #sdf_tiles_initial <- spark_read_csv(sc, "tiles_initial", paste0(path_tmp_files, "\\tiles_initial"))
-  write_filtered_data(path_weather_files = path_weather_files, 
-                      path_target = path_tmp_tiled_weather_data_yearly, 
-                      sdf_stations = sdf_stations, 
-                      sdf_tiles_initial = sdf_tiles_initial, 
-                      year_start_baseline = year_start_baseline, 
-                      year_end_baseline = year_end_baseline)
+  write_filtered_data(
+    path_weather_files = path_weather_files, 
+    path_target = path_tmp_tiled_weather_data_yearly, 
+    sdf_stations = sdf_stations, 
+    sdf_tiles_initial = sdf_tiles_initial, 
+    year_start_baseline = year_start_baseline, 
+    year_end_baseline = year_end_baseline)
   
   # Mean over all 30 years
   print( "Calculating the means for the baseline year.")
-  sdf_weather_per_tile <- read_weather_baseline( path = paste0(path_tmp_tiled_weather_data_yearly, "\\*"))
+  sdf_weather_per_tile <- read_weather_baseline( 
+    path = paste0( 
+      path_tmp_tiled_weather_data_yearly, 
+      "\\*"))
   sdf_weather_baseline <- sdf_weather_per_tile %>% 
-    group_by(Date, Element, Tile_Id)  %>% 
-    summarise(Value = mean(Value))
+    group_by(
+      Date, 
+      Element, 
+      Tile_Id)  %>% 
+    summarise(
+      Value = mean(Value))
   print( "Writing baseline year.")
-  spark_write_csv(sdf_weather_baseline, path_target, mode = "overwrite")
+  spark_write_csv(
+    sdf_weather_baseline, 
+    path_target, 
+    mode = "overwrite")
   print( "... Finished generating baseline for weather data.")
   return( sdf_weather_baseline)
 }
 
 
-write_filtered_data = function(path_weather_files, 
-                               path_target, 
-                               sdf_stations, 
-                               sdf_tiles_initial, 
-                               year_start_baseline, 
-                               year_end_baseline){
+write_filtered_data = function(
+  path_weather_files, 
+  path_target, 
+  sdf_stations, 
+  sdf_tiles_initial, 
+  year_start_baseline, 
+  year_end_baseline)
+{
   print( paste0("Generalizing data from stations to tiles (", year_start_baseline, "-", year_end_baseline ,"). ..."))
   # create one big temporary file of filtered and generalized weather data
   write_mode <- "overwrite"
@@ -79,7 +98,9 @@ write_filtered_data = function(path_weather_files,
 }
 
 # generalize data from stations to tiles
-generalize_from_stations_to_tiles = function( sdf_weather_data){
+generalize_from_stations_to_tiles = function( 
+  sdf_weather_data)
+{
   # add station count per Tile_Id (used to normalize storm counts per tile)
   sdf_station_count_per_tile <- sdf_weather_data %>% 
     group_by(Station, Tile_Id) %>% 

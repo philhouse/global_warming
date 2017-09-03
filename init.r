@@ -1,13 +1,16 @@
 source("config.r", encoding = "UTF-8")
 
-init = function (install = FALSE) {
+init = function (
+  install = FALSE) 
+{
   if (install == TRUE) install_packages()
   load_packages()
   start_spark()
 }
 
 
-install_packages = function () {
+install_packages = function () 
+{
   install.packages("xtable")
   # devtools::install_github("hadley/dplyr")
   # devtools::install_github("rstudio/sparklyr")
@@ -22,7 +25,8 @@ install_packages = function () {
   install.packages("geojsonio")
 }
 
-load_packages = function () {
+load_packages = function () 
+{
   library(sparklyr)
   library(dplyr)
   library(ggplot2)
@@ -33,7 +37,8 @@ load_packages = function () {
   library(geojsonio)
 }
 
-start_spark = function () {
+start_spark = function () 
+{
   config <- spark_config()
   config$`sparklyr.shell.driver-memory` <- "6G"
   config$`sparklyr.shell.executor-memory` <- "6G"
