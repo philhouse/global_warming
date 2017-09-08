@@ -1,17 +1,17 @@
 # set your paths here
-
+prefix_data <- "R:\\Big Data Prak\\" #"D:/Entwicklung/big-data-praktikum/"
 # sources of original data (Weather meassurements of one year can not be spread acros multiple files!)
-perfix_data_org <- "R:\\Big Data Prak\\data_org\\"
+perfix_data_org <- paste0(prefix_data, "data_org\\")
 path_weather_yearly_org <- paste0(perfix_data_org, "ftp.ncdc.noaa.gov\\pub\\data\\ghcn\\daily\\by_year\\")
 path_stations_org <- paste0(perfix_data_org, "ftp.ncdc.noaa.gov\\pub\\data\\ghcn\\daily\\ghcnd-stations.txt")
 path_co2_global <- paste0(perfix_data_org, "cdiac.ornl.gov\\ftp\\ndp030\\CSV-FILES\\global.1751_2014.csv")
 
 # sources of generated data
-path_processed <- "R:\\Big Data Prak\\data_processed\\"
+path_processed <- paste0(prefix_data, "data_processed\\")
 path_weather_data <- paste0(path_processed, "weather_data\\")
 
 # folder for temporary data, that is created while generating the weather_data for the shiny web application
-path_tmp <- "R:\\Big Data Prak\\tmp\\"
+path_tmp <- paste0(prefix_data, "tmp\\")
 #path_stations <- paste0(path_tmp, "stations")
 #path_baselines <- paste0(path_tmp, "baselines") #\\weather_per_tile"
 #path_baseline <- paste0(path_processed, "baseline\\*")
