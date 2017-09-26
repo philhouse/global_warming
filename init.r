@@ -11,24 +11,21 @@ init = function (
 
 install_packages = function () 
 {
-  install.packages("xtable")
-  # devtools::install_github("hadley/dplyr")
-  # devtools::install_github("rstudio/sparklyr")
   install.packages("dplyr")
   install.packages("sparklyr")
-  install.packages("ggplot2")
-  install.packages("rworldmap")
-  install.packages("rworldxtra")
   install.packages("shiny")
+  
   install.packages("leaflet")
+  install.packages("tidyr")
+  
   install.packages("jsonlite")
   install.packages("geojsonio")
 }
 
 load_packages = function () 
 {
-  library(sparklyr)
   library(dplyr)
+  library(sparklyr)
   library(ggplot2)
   library(shiny)
   library(tidyr)

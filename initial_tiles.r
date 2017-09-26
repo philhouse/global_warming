@@ -15,7 +15,7 @@ read_tiles_initial = function (
 # *(defined by measurement_coverage_threshold)
 get_initial_tiles = function(
   path_weather_files, 
-  sdf_stations, 
+  sdf_tiled_stations, 
   path_tmp_tiles_yearly, 
   year_start, 
   year_span, 
@@ -33,13 +33,10 @@ get_initial_tiles = function(
   append <- FALSE
   for(i in (year_start:year_end)) 
   {
-    sdf_weather_data <- read_weather_data_org( 
+    sdf_weather_data <- read_weather_data_org_with_tile_id( 
       path_weather_files, 
-      i)
-    sdf_weather_data <- inner_join(
-      sdf_weather_data, 
-      sdf_stations, 
-      by=c("Station" = "Id"))
+      i,
+      sdf_tiled_stations)
     
     sdf_tiles_per_year <- get_active_tiles_of_year(
       sdf_weather_data, 
@@ -70,7 +67,7 @@ get_initial_tiles = function(
   sdf_tiles_initial <- inner_join(
     sdf_tiles_per_year, 
     sdf_tiles_initial, 
-    by=c("Tile_Id" = "Tile_Id"))
+    by=c("Tile_Id"))
   sdf_tiles_initial <- get_active_tiles_of_years(
     sdf_tiles_initial, 
     year_span = year_span, 
@@ -111,4 +108,33 @@ get_active_tiles_of_years = function(
     summarise(Count=n()) %>% 
     filter(Count/year_span >= measurement_coverage_threshold) %>% 
     select(Tile_Id)
+}
+
+limit_data_to_considered_tiles = function(
+  data, 
+  considered_tiles)
+{
+  inner_join( data, considered_tiles, by = "Tile_Id")
+}
+
+add_station_count_per_tile = function(
+  sdf_tiled_weather_data)
+{
+  sdf_tiled_weather_data %>% 
+    group_by(
+      Station, 
+      Tile_Id) %>% 
+    summarise() %>% 
+    group_by(
+      Tile_Id) %>% 
+    summarise(
+      Station_count = n()) %>% 
+    select(
+      Tile_Id, 
+      Station_count) %>%
+    inner_join(
+      sdf_tiled_weather_data, 
+      by = "Tile_Id") %>% 
+    select(
+      -Station)
 }

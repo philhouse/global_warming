@@ -29,14 +29,14 @@ read_stations_org = function(
   return(sdf_stations)
 }
 
-# generate stations table with added information about the tile in which the station lies in (wide table approach)
+# Generate stations table with added tile information (tile id as well as latitude and longitude of tile center)
 generate_tiled_stations_table = function (
   path_source, 
   tile_size) 
 {
   print("Generating tiled stations table ...")
   sdf_stations <- read_stations_org( path_source)
-  sdf_stations <- sdf_stations %>% 
+  sdf_tiled_stations <- sdf_stations %>% 
     # add tile id
     mutate( 
       Tile_Id = paste0(
@@ -52,5 +52,5 @@ generate_tiled_stations_table = function (
         as.integer((Long + 180) %/% tile_size) * 
         tile_size - 180 + (tile_size/2))
   print("... Finished generating tiled stations table.")
-  return(sdf_stations)
+  return(sdf_tiled_stations)
 }
