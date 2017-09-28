@@ -35,6 +35,46 @@ generalize_by_time = function(
       Value = mean(Value))
 }
 
+generalize_from_stations_to_tiles = function( 
+  sdf_weather_data)
+{
+  # add station count per Tile_Id (used to normalize storm counts per tile)
+  sdf_weather_data <- 
+    sdf_weather_data %>% 
+    add_station_count_per_tile()
+  # calculate means per tile (temperatur data, precipitation data)
+  sdf_weather_value_means_per_tile <- 
+    sdf_weather_data %>% 
+    filter(
+      Element %in% c("PRCP", "TMAX")) %>% 
+    group_by(
+      Date, 
+      Element, 
+      Tile_Id)  %>% 
+    summarise(
+      Value = mean(Value))
+  # calculate means per tile (stormy weather types)
+  sdf_weather_occurrence_means_per_tile <- 
+    sdf_weather_data %>% 
+    filter(
+      !Element %in% c("PRCP", "TMAX")) %>% 
+    group_by(
+      Date, 
+      Tile_Id, 
+      Station_count)  %>% 
+    summarise(
+      Value = n()/Station_count) %>% 
+    select(
+      -Station_count) %>%
+    mutate(
+      Element = "WTXX")
+  # reunite both
+  sdf_tiled_weather_data <- 
+    union_all(
+      sdf_weather_value_means_per_tile, 
+      sdf_weather_occurrence_means_per_tile)
+}
+
 # The function could not be splitted in two due to a bug (See bug comment below)
 generalize_from_stations_to_tiles_and_calc_baseline_differences = function( 
   sdf_weather_data,

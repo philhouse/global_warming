@@ -114,7 +114,7 @@ generate_weather_data = function(
   #       year_span_baseline,
   #     measurement_coverage_threshold =
   #       baseline_measurement_coverage_threshold)
-  sdf_tiled_weather_baseline <- read_weather_baseline( path_tmp_baseline)
+  sdf_tiled_weather_baseline <- read_tiled_weather_baseline( path_tmp_baseline)
   
   sdf_tiled_weather_baseline <- 
     rename(

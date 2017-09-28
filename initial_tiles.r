@@ -114,7 +114,10 @@ limit_data_to_considered_tiles = function(
   data, 
   considered_tiles)
 {
-  inner_join( data, considered_tiles, by = "Tile_Id")
+  inner_join( 
+    data, 
+    considered_tiles, 
+    by = "Tile_Id")
 }
 
 add_station_count_per_tile = function(

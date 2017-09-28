@@ -58,6 +58,7 @@ generate_tiled_weather_baseline = function(
     summarise(
       Value = mean(Value))
   print( "Writing baseline year.")
+  sdf_tiled_weather_baseline
   spark_write_csv(
     sdf_tiled_weather_baseline, 
     path_target, 
@@ -79,21 +80,19 @@ write_filtered_data = function(
   write_mode <- "overwrite"
   for(i in (year_start_baseline:year_end_baseline)) {
     # reject data from unconsidered tiles
-    sdf_weather_data <- read_weather_data_org_with_tile_id( 
-      path_weather_files, 
-      i, 
-      sdf_tiled_stations)
-    limit_data_to_considered_tiles(
-      data = sdf_weather_data, 
-      considered_tiles = sdf_tiles_initial
-    )
-    
-    sdf_weather_data <- preprocessing( sdf_weather_data)
+    sdf_weather_data <- 
+      read_weather_data_org_with_tile_id( 
+        path_weather_files, 
+        i, 
+        sdf_tiled_stations) %>%
+      limit_data_to_considered_tiles(
+        considered_tiles = sdf_tiles_initial
+      )
     
     sdf_tiled_weather_data <- 
       generalize_from_stations_to_tiles( 
         sdf_weather_data) %>% 
-      # reorder columns to fit forced schema of read_weather_baseline function (If not forced Date will be imported as integer)
+      # reorder columns to fit forced schema of read_tiled_weather_baseline function (If not forced Date will be imported as integer)
       select( 
         Date, 
         Element, 

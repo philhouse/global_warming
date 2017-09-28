@@ -1,4 +1,4 @@
-read_weather_baseline = function (
+read_tiled_weather_baseline = function (
   path) 
 {
   sdf_tiled_weather_baseline <- spark_read_csv(
