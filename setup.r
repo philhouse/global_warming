@@ -26,5 +26,8 @@ generate_weather_data(
   baseline_measurement_coverage_threshold
 )
 
+#generate Polygons for World Map Visualization
+source("convert_polygon_data.R")
+
 # start the web application
 source("main.R")

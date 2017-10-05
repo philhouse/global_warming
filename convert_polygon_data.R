@@ -7,8 +7,8 @@ n <- nrow(data)
 # Generate Polygon data from point data in our file for Polygons on Map just for our data
 edge_distance = tile_size/2
 for(i in start_row:n){
-  lng <- as.numeric( data[i,12] - edge_distance) #ToDo: Get data by column name
-  lat <- as.numeric( data[i,11] - edge_distance)
+  lng <- as.numeric( data[i,11] - edge_distance) #ToDo: Get data by column name
+  lat <- as.numeric( data[i,10] - edge_distance)
   sub_data <- data[i,-(1:9)]
   # Create Polygons with data of point 
   polygon_data <- Polygons( list( Polygon( cbind( c( lng, lng, (lng + tile_size), (lng + tile_size)), 
