@@ -1,8 +1,12 @@
-# 
+# Applies generalize_by_time() on 3 different time segments of the input data frame.
+# The time segments are the whole year, the summerly half-year and the winterly half-year
+# (according to the northern hemisphere).
+# Return: List of 3 elements named year, summer and winter, each beeing a
+# generalized part of the input data frame.
 generalize_to_list_of_time_segments = function(
   sdf_tiled_weather_data)
 {
-  midterm_boundary_1 <- "0504" # %MM%DD
+  midterm_boundary_1 <- "0504" # Date of the format %MM%DD
   midterm_boundary_2 <- "1103"
   list_tiled_weather_by_time_segment <- 
     list()
@@ -24,6 +28,10 @@ generalize_to_list_of_time_segments = function(
   list_tiled_weather_by_time_segment
 }
 
+# Generalizes tiled weather data by time.
+# Therefore all weather measurements of the same Element and Tile_Id
+# are summarized using mean.
+# This modified data frame is returned.
 generalize_by_time = function(
   sdf_tiled_weather_data)
 {
@@ -35,6 +43,11 @@ generalize_by_time = function(
       Value = mean(Value))
 }
 
+# Generalizes weather data by tile.
+# Therefore the daily weather measurements of stations inside the same tile
+# are summarized using mean.
+# Doing so, all observed stormy weather types are summarized as Element WTXX.
+# This modified data frame is returned.
 generalize_from_stations_to_tiles = function( 
   sdf_weather_data)
 {
@@ -75,7 +88,10 @@ generalize_from_stations_to_tiles = function(
       sdf_weather_occurrence_means_per_tile)
 }
 
-# The function could not be splitted in two due to a bug (See bug comment below)
+# Does basically the same as generalize_from_stations_to_tiles(), but also
+# subtracts the baseline value for each tiled measurement record.
+# (The function could not be splitted into two due to a bug. See bug comment below.)
+# This modified data frame is returned.
 generalize_from_stations_to_tiles_and_calc_baseline_differences = function( 
   sdf_weather_data,
   sdf_tiled_weather_baseline)

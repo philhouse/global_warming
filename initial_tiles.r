@@ -1,3 +1,6 @@
+# Reads the table of initial tiles
+# that is tiles, that are considered for weather data generation
+# Which tiles are considered is defined by get_initial_tiles()
 read_tiles_initial = function (
   path) 
 {
@@ -9,7 +12,7 @@ read_tiles_initial = function (
     infer_schema = TRUE)
 }
 
-# returns initial tiles, 
+# Determines the initial tiles, 
 # that is tiles which are active since the first year and 
 # have enough data to cover* the time span properly.
 # *(defined by measurement_coverage_threshold)
@@ -76,13 +79,16 @@ get_initial_tiles = function(
   sdf_tiles_initial
 }
 
-# filter for coverage of the year (tiles that have measurement records of at least 80 % of the year)
+# Filter tiles for measurement coverage of one year
+# (Keep tiles that have measurement records of at least 
+# (measurement_coverage_threshold * 100) % of the year.)
+# Expects sdf_weather_data to contain only measurements for one year.
 get_active_tiles_of_year = function(
-  sdf_weather_data, 
+  sdf_weather_data_for_one_year, 
   year_span, 
   measurement_coverage_threshold)
 {
-  sdf_weather_data %>% 
+  sdf_weather_data_for_one_year %>% 
     # summarise to one record per tile per day
     group_by(Date, Tile_Id) %>% 
     summarise() %>% 
@@ -97,29 +103,32 @@ get_active_tiles_of_year = function(
     select(Tile_Id, Year)
 }
 
-# filter for coverage of the baseline time span (tiles that have measurement records of at least 80 % of the years)
+# Filter tiles for coverage of multiple years
+# (Keep tiles that are active at least 80% of the years.)
 get_active_tiles_of_years = function(
-  sdf_weather_data, 
+  sdf_weather_data_for_multiple_years, 
   year_span, 
   measurement_coverage_threshold)
 {
-  sdf_weather_data %>%
+  sdf_weather_data_for_multiple_years %>%
     group_by(Tile_Id) %>% 
     summarise(Count=n()) %>% 
     filter(Count/year_span >= measurement_coverage_threshold) %>% 
     select(Tile_Id)
 }
 
+# Returns only those records of sdf_data that belong to considered tiles
 limit_data_to_considered_tiles = function(
-  data, 
-  considered_tiles)
+  sdf_data, 
+  sdf_considered_tiles)
 {
   inner_join( 
-    data, 
-    considered_tiles, 
+    sdf_data, 
+    sdf_considered_tiles, 
     by = "Tile_Id")
 }
 
+# Extends input dataframe by the number of stations inside each tile
 add_station_count_per_tile = function(
   sdf_tiled_weather_data)
 {

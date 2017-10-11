@@ -1,13 +1,27 @@
-# Erstelle Datei f?r Baseline-Jahr f?r alle Kacheln ab 1917 (99 Jahre)
-# Ein Besseres Startjahr bzgl. Kacheln w?re 1957 gewesen, aber dann ist der Zeitraum bis 2016 zu kurz. 1916 (100 Jahre) wurde nicht gew?hlt, weil es ein Schaltjahr ist.
-# Baseline-Jahr: Pro Kachel ?ber die ersten 30 Jahre den Durschnitt der Tagesmessungen bilden. Aggregieren der Stationen zu Kacheln und aggregieren von 30 Jahren zu einem.
-
 source("weather_data.r")
 source("initial_tiles.r")
 source("generalization.r")
 
-# generates weather baseline year
-# During excecution multiple temporary files are written and read again. That way one can manually continue the script if the livelong excecution ran into an error at some point.
+# Generates the weather baseline year.
+# The table is written as csv and contains daily, averaged (over given year span) weather measurements for each tile.
+# During the excecution multiple temporary files are written and read again,
+# that way one can manually continue the script if the livelong execution ran into an error at some point.
+#
+# All tiles are checked to meet a certain threshold of measurement coverage.
+# (See initial_tiles.r\get_initial_tiles())
+# Only the records that meet the criteria will be part of the baseline data set.
+# 
+# Input:
+# path_weather_files:  Source path to the yearly CSV Files of the GHCN Daily data set
+# sdf_tiled_stations: Spark data frame of stations file with added Tile_Id
+# path_tmp_files: Target path to store temporary data
+# path_target: Target path to store the generated spark data frame (sparklyr CSV files).
+# year_start_baseline:  Calendar year to mark the start of the baseline generation
+# year_span_baseline: Number of years to define the span used for the baseline generation
+# measurement_coverage_threshold:  Decimal number of range [0..1].
+#   Defines during the baseline generation which tiles should be used,
+#   because they have enough measurements to cover at least 
+#   (measurement_coverage_threshold * 100) % of the baseline span.
 generate_tiled_weather_baseline = function( 
   path_weather_files, 
   sdf_tiled_stations, 
@@ -34,8 +48,8 @@ generate_tiled_weather_baseline = function(
     year_start = year_start_baseline, 
     year_span = year_span_baseline, 
     measurement_coverage_threshold = measurement_coverage_threshold)
-  #spark_write_csv(sdf_tiles_initial, paste0(path_tmp_files, "\\tiles_initial"), mode="overwrite")
-  #sdf_tiles_initial <- spark_read_csv(sc, "tiles_initial", paste0(path_tmp_files, "\\tiles_initial"))
+  # Write one big file of weather data with records filtered for initial tiles
+  # and measurement values generalized from stations to tiles
   write_filtered_data(
     path_weather_files = path_weather_files, 
     path_target = path_tmp_tiled_weather_data_yearly, 
@@ -44,7 +58,7 @@ generate_tiled_weather_baseline = function(
     year_start_baseline = year_start_baseline, 
     year_end_baseline = year_end_baseline)
   
-  # Mean over all 30 years
+  # Calculate daily measurement values using mean over all 30 years
   print( "Calculating the means for the baseline year.")
   sdf_tiled_weather_baseline <- 
     read_tiled_weather_baseline( 
@@ -67,6 +81,17 @@ generate_tiled_weather_baseline = function(
   return( sdf_tiled_weather_baseline)
 }
 
+# Writes one big file of filtered and generalized weather data.
+# That means unconsidered tiles (non-initial tiles) are rejected and 
+# weather measurements are generalized from stations to tiles.
+# 
+# Input:
+# path_weather_files:  Source path to the yearly CSV Files of the GHCN Daily data set
+# path_target: Target path to store the generated spark data frame (sparklyr CSV files).
+# sdf_tiled_stations: Spark data frame of stations file with added Tile_Id
+# sdf_tiles_initial: Spark data frame containing all tiles that should be used.
+# year_start_baseline:  Calendar year to mark the start of the baseline generation
+# year_end_baseline: Calendar year to mark the end (last year) of the baseline generation
 write_filtered_data = function(
   path_weather_files, 
   path_target, 
@@ -76,7 +101,6 @@ write_filtered_data = function(
   year_end_baseline)
 {
   print( paste0("Generalizing data from stations to tiles (", year_start_baseline, "-", year_end_baseline ,"). ..."))
-  # create one big temporary file of filtered and generalized weather data
   write_mode <- "overwrite"
   for(i in (year_start_baseline:year_end_baseline)) {
     # reject data from unconsidered tiles
@@ -86,7 +110,7 @@ write_filtered_data = function(
         i, 
         sdf_tiled_stations) %>%
       limit_data_to_considered_tiles(
-        considered_tiles = sdf_tiles_initial
+        sdf_considered_tiles = sdf_tiles_initial
       )
     
     sdf_tiled_weather_data <- 

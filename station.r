@@ -1,5 +1,4 @@
-source("tile.r")
-
+# Reads the original txt file for stations
 read_stations_org = function(
   path) 
 {
@@ -29,7 +28,8 @@ read_stations_org = function(
   return(sdf_stations)
 }
 
-# Generate stations table with added tile information (tile id as well as latitude and longitude of tile center)
+# Generates stations table with added tile information
+# (tile id as well as latitude and longitude of tile center)
 generate_tiled_stations_table = function (
   path_source, 
   tile_size) 

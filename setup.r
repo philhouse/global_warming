@@ -1,16 +1,13 @@
-# installs libraries, 
-# generates data files (optional) and 
-# executes the web application
+# Installs libraries, 
+# generates new data (optional) and 
+# runs the web application
 
 # install needed libraries
 source("init.r")
 install_packages()
 
-# optional: 
-# generate new weather data files for the web application 
-# (optional since the files are included already)
-log <- file("output.log", open="wt")
-sink(log, type="message")
+# optional (since the files are included already): 
+# generate a new weather data table
 source("init.r")
 source("generate_weather_data.r")
 generate_weather_data(
@@ -25,6 +22,8 @@ generate_weather_data(
   year_end_data,
   baseline_measurement_coverage_threshold
 )
+# and convert it to polygon data for the web application 
+source("convert_polygon_data.R")
 
 #generate Polygons for World Map Visualization
 source("convert_polygon_data.R")

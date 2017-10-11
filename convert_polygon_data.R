@@ -1,4 +1,5 @@
 source("init.r")
+init()
 # Read Data, must be DataFrame for matchin PolygonID with data
 data <- spark_read_csv(sc,"weather_data",path_weather_data) %>% arrange(Year) %>% collect() %>% as.data.frame()
 past_element_year <- 1
