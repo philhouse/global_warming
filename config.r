@@ -3,7 +3,7 @@
 
 # Paths:
 
-prefix_data <- "R:\\Big Data Prak\\" #"D:/Entwicklung/big-data-praktikum/"
+prefix_data <- "R:\\Big Data Prak\\" #"D:\\Entwicklung\\big-data-praktikum\\"
 
 # Path prefix for original data
 prefix_data_org <- paste0(
@@ -34,9 +34,8 @@ path_weather_data <- paste0(
   path_processed, 
   "weather_data\\")
 # Path for generated polygon data (web app)
-path_polygons_weather_data <- paste0(
-  path_processed, 
-  "polygons_weather_data\\")
+# dynamic path to polygon data
+path_polygons_weather_data <- ".\\polygons_weather_data\\"
 
 # Path for temporary data, that is created while generating the data for the shiny web application
 path_tmp <- paste0(
