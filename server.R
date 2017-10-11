@@ -24,7 +24,7 @@ shinyServer(function(input, output) {
     # Convert into GeoJSON format for Circles on Map
     geojson_circle_data <- geojson_sp(geojson_json(filtered_data, lat='Lat', lon = 'Long'))
     #Load yearly GeoJSOn Data, Convert to sp to use polygon functions
-    geojson_polygon_filtered_data <- geojson_read(paste(path_processed,"polygons_weather_data\\geojson_polygons_data_",yearSlider,".geojson",sep=""), what="sp")
+    geojson_polygon_filtered_data <- geojson_read(paste(path_polygons_weather_data,"geojson_polygons_data_",yearSlider,".geojson",sep=""), what="sp")
     
     # Observer for temp/prec/storm timespan to determine which timespan of the year to look at
     observe({
