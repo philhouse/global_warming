@@ -33,6 +33,10 @@ path_processed <- paste0(
 path_weather_data <- paste0(
   path_processed, 
   "weather_data\\")
+# Path for generated polygon data (web app)
+path_polygons_weather_data <- paste0(
+  path_processed, 
+  "polygons_weather_data\\")
 
 # Path for temporary data, that is created while generating the data for the shiny web application
 path_tmp <- paste0(

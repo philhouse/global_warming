@@ -21,7 +21,7 @@ for(i in start_row:n){
   # First iteration and at the end of each year set: write yearly set into geojson file and create new poly_data, following iterations: add data to previous poly_data
   if((i == 1) || !(sub_data$Year == past_element_year)){
     if(!(i==1)){
-      geojson_write(poly_data,file=paste(path_processed,"polygons_weather_data\\geojson_polygons_data_",past_element_year,".geojson",sep = ""),geometry = "polygon")
+      geojson_write(poly_data,file=paste(path_polygons_weather_data,"geojson_polygons_data_",past_element_year,".geojson",sep = ""),geometry = "polygon")
       print(i)
     }
     past_element_year <- sub_data$Year
@@ -31,6 +31,6 @@ for(i in start_row:n){
   }
   # Last iteration the data has to be written
   if(i == nrow(data)){
-    geojson_write(poly_data,file=paste(path_processed,"polygons_weather_data\\geojson_polygons_data_",past_element_year,".geojson",sep = ""),geometry = "polygon")
+    geojson_write(poly_data,file=paste(path_polygons_weather_data,"geojson_polygons_data_",past_element_year,".geojson",sep = ""),geometry = "polygon")
   }
 }
