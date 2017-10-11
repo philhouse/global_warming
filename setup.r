@@ -25,8 +25,5 @@ generate_weather_data(
 # and convert it to polygon data for the web application 
 source("convert_polygon_data.R")
 
-#generate Polygons for World Map Visualization
-source("convert_polygon_data.R")
-
 # start the web application
 source("main.R")
